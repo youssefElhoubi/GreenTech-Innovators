@@ -19,7 +19,6 @@ public class DataWebSocketController {
     @MessageMapping("/addData")
     @SendTo("/topic/data")
     public List<Data> addData(Data data) {
-        System.out.println(data.getHumidity());
         dataService.add(data);
         return dataService.all();
     }
