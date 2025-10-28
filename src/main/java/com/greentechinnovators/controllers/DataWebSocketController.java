@@ -1,4 +1,4 @@
-package com.greentechinnovators.config;
+package com.greentechinnovators.controllers;
 
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.service.DataService;
@@ -19,6 +19,7 @@ public class DataWebSocketController {
     @MessageMapping("/addData")
     @SendTo("/topic/data")
     public List<Data> addData(Data data) {
+        System.out.println(data.getHumidity());
         dataService.add(data);
         return dataService.all();
     }
