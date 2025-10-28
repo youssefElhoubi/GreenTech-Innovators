@@ -12,9 +12,9 @@ const char* ssid = "Youcode";
 const char* password = "Youcode@2024";
 
 // ----- WebSocket Server -----
-const char* ws_server = "192.168.1.100";
+const char* ws_server = "192.168.8.121";
 const uint16_t ws_port = 8080;
-const char* ws_path = "/ws";
+const char* ws_path = "/ws-native";
 
 WebSocketsClient webSocket;
 
@@ -113,5 +113,5 @@ void loop() {
   Serial.println("Sent STOMP message: ");
   Serial.println(stompMessage);
 
-  delay(5000);
+  delay(1000);
 }
