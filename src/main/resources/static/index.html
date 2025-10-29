@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GreenTech - Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f0f0; }
+        #data { max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #fff; }
+        div { margin-bottom: 5px; border-bottom: 1px solid #eee; padding: 4px;}
+    </style>
+</head>
+<body>
+    <h2>WebSocket</h2>
+    <div id="data"> connection ...</div>
+
+    <script>
+        var stompClient = null;
+        function connect() {
+            var socket = new SockJS('/ws'); 
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+                document.getElementById('data').innerHTML = 'connected. waiting for data...';
+
+                stompClient.subscribe('/topic/data', function (message) {
+                    showData(JSON.parse(message.body));
+                });
+
+                stompClient.send("/app/getData", {}, "");
+            });
+        }
+
+        function showData(dataList) {
+            var container = document.getElementById('data');
+            container.innerHTML = '';
+
+            dataList.slice().reverse().forEach(function(data) {
+                var el = document.createElement('div');
+                el.innerHTML = '<b>Temp:</b> ' + data.temp + ' C | <b>Humidity:</b> ' + data.humidity + ' %';
+                container.appendChild(el);
+            });
+        }
+        connect();
+    </script>
+</body>
+</html>
