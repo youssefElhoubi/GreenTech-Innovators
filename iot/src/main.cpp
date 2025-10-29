@@ -18,15 +18,43 @@ const char* ws_path = "/ws-native";
 
 WebSocketsClient webSocket;
 
-
+// ----- OLED -----
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
+bool isStompConnected = false;
+
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
-  if(type == WStype_TEXT){
-    Serial.printf("Received: %s\n", payload);
+  
+  switch(type) {
+    case WStype_DISCONNECTED:
+      Serial.println("WebSocket Disconnected.");
+      isStompConnected = false;
+      break;
+      
+    case WStype_CONNECTED:
+      Serial.println("WebSocket Connected!");
+      Serial.println("Sending STOMP CONNECT frame...");
+      webSocket.sendTXT("CONNECT\naccept-version:1.2\nhost:" + String(ws_server) + "\n\n\0");
+      break;
+      
+    case WStype_TEXT:
+      Serial.printf("Received: %s\n", payload);
+      if (strstr((char*)payload, "CONNECTED")) {
+        Serial.println("STOMP Connection Successful!");
+        isStompConnected = true;
+      }
+      break;
+      
+    case WStype_BIN:
+    case WStype_ERROR:
+    case WStype_FRAGMENT_TEXT_START:
+    case WStype_FRAGMENT_BIN_START:
+    case WStype_FRAGMENT:
+    case WStype_FRAGMENT_FIN:
+      break;
   }
 }
 
@@ -39,6 +67,7 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
+  
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
   display.setTextSize(1);
@@ -55,13 +84,6 @@ void setup() {
   Serial.println("\nWiFi connected!");
   Serial.print("IP: "); Serial.println(WiFi.localIP());
 
-  display.clearDisplay();
-  display.setCursor(0,0);
-  display.println("WiFi connected!");
-  display.print("IP: ");
-  display.println(WiFi.localIP());
-  display.display();
-
   // Connect WebSocket
   webSocket.begin(ws_server, ws_port, ws_path);
   webSocket.onEvent(webSocketEvent);
@@ -70,16 +92,20 @@ void setup() {
 void loop() {
   webSocket.loop();
 
-  // --- Fake sensor values ---
   int mq135Value = random(200, 800);
   float tempC = random(20, 35);
   float humidity = random(30, 80);
 
-  // --- Display on OLED ---
   display.clearDisplay();
   display.setTextSize(1);
   display.setCursor(0,0);
-  display.println("WiFi connected!");
+  
+  if (isStompConnected) {
+    display.println("STOMP Connected!");
+  } else {
+    display.println("Connecting STOMP...");
+  }
+  
   display.print("IP: ");
   display.println(WiFi.localIP());
   display.setCursor(0,20);
@@ -90,28 +116,30 @@ void loop() {
   display.print("Humidity: "); display.print(humidity); display.println(" %");
   display.display();
 
+  if (isStompConnected) {
+    
+    StaticJsonDocument<200> doc;
+    doc["temp"] = tempC;
+    doc["humidity"] = humidity;
 
-  StaticJsonDocument<200> doc;
-  doc["temp"] = tempC;
-  doc["humidity"] = humidity;
+    String jsonPayload;
+    serializeJson(doc, jsonPayload);
 
-  String jsonPayload;
-  serializeJson(doc, jsonPayload);
-
-
-
-  
-  String stompMessage = "SEND\n";
-  stompMessage += "destination:/app/addData\n";
-  stompMessage += "content-type:application/json\n";
-  stompMessage += "content-length:" + String(jsonPayload.length()) + "\n";
-  stompMessage += "\n";
-  stompMessage += jsonPayload;
-  
-  webSocket.sendTXT(stompMessage + "\0");
-  
-  Serial.println("Sent STOMP message: ");
-  Serial.println(stompMessage);
+    String stompMessage = "SEND\n";
+    stompMessage += "destination:/app/addData\n";
+    stompMessage += "content-type:application/json\n";
+    stompMessage += "content-length:" + String(jsonPayload.length()) + "\n";
+    stompMessage += "\n";
+    stompMessage += jsonPayload;
+    
+    webSocket.sendTXT(stompMessage + "\0");
+    
+    Serial.println("Sent STOMP message: ");
+    Serial.println(stompMessage);
+    
+  } else {
+    Serial.println("STOMP not connected, waiting...");
+  }
 
   delay(1000);
 }
