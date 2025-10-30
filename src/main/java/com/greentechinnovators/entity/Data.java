@@ -13,11 +13,21 @@ public class Data {
     private String id;
     private Double temp;
     private Float humidity;
+    private Integer pression;
+    private Integer co2;
+    private Integer gas;
+    private Double uv;
+    private Integer lumiere;
 
-    public Data(String id, Double temp, Float humidity) {
-        this.id=id;
+    public Data(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere) {
+        this.id = id;
         this.temp = temp;
         this.humidity = humidity;
+        this.pression = pression;
+        this.co2 = co2;
+        this.gas = gas;
+        this.uv = uv;
+        this.lumiere = lumiere;
     }
 
     public Data() {
