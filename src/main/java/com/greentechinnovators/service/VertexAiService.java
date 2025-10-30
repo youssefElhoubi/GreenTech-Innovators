@@ -1,9 +1,12 @@
 package com.greentechinnovators.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.net.ssl.*;
@@ -13,34 +16,55 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
-import java.util.Collections;
+import java.util.*;
 
 @Service
 public class VertexAiService {
 
-    private final String apiKey = System.getenv().getOrDefault("VERTEX_API_KEY", "");
-    private final String apiUrl = "https://api.deepseek.com/chat/completions";
+    private final String apiKey  ;
+    private final String apiUrl;
     private final OkHttpClient client;
+    private final ObjectMapper objectMapper;
 
-    // Control flag (set INSECURE_TLS=true in env for dev only)
-    private final boolean insecureTls = Boolean.parseBoolean(System.getenv().getOrDefault("INSECURE_TLS", "false"));
-
-    public VertexAiService() {
+    public VertexAiService(
+            @Value("${vertex.api.key}") String apiKey,
+            @Value("${vertex.api.url}") String apiUrl,
+            ObjectMapper objectMapper
+    ) {
+        this.objectMapper =objectMapper;
+        this.apiKey = apiKey;
+        this.apiUrl = apiUrl;
+        // Control flag (set INSECURE_TLS=true in env for dev only)
+        boolean insecureTls = Boolean.parseBoolean(System.getenv().getOrDefault("INSECURE_TLS", "false"));
         this.client = insecureTls ? createInsecureClientWithSni() : createSecureClient();
     }
 
     // Public method: returns assistant content or JSON error string
-    public String ask(String userMessage) {
-        String jsonPayload = "{"
-                + "\"model\": \"deepseek-chat\","
-                + "\"messages\": ["
-                + "{\"role\": \"system\", \"content\": \"You are a helpful assistant.\"},"
-                + "{\"role\": \"user\", \"content\": \"" + escapeJson(userMessage) + "\"}"
-                + "],"
-                + "\"stream\": false"
-                + "}";
+    public String ask(String userMessage) throws JsonProcessingException {
+        Map<String, Object> jsonPayload = new HashMap<>();
 
-        RequestBody body = RequestBody.create(jsonPayload, MediaType.get("application/json"));
+        jsonPayload.put("model", "deepseek-chat");
+        jsonPayload.put("stream", false);
+
+// Create messages list
+        List<Map<String, String>> messages = new ArrayList<>();
+
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", "You are a helpful assistant.");
+
+        Map<String, String> userMsg = new HashMap<>();
+        userMsg.put("role", "user");
+        userMsg.put("content", escapeJson(userMessage));
+
+        messages.add(systemMessage);
+        messages.add(userMsg);
+
+        jsonPayload.put("messages", messages);
+
+        String payload = objectMapper.writeValueAsString(jsonPayload);
+
+        RequestBody body = RequestBody.create(payload, MediaType.get("application/json"));
 
         Request request = new Request.Builder()
                 .url(apiUrl)
@@ -51,7 +75,9 @@ public class VertexAiService {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 // return structured JSON error string so Postman can parse it
-                return "{\"error\": \"HTTP " + response.code() + " - " + response.message() + "\"}";
+                Map<String,Object> error = new HashMap<>();
+                error.put("error","HTTP " + response.code() + " - "  + response.message() );
+                return objectMapper.writeValueAsString(error);
             }
 
             String responseBody = response.body() != null ? response.body().string() : "";
@@ -71,8 +97,7 @@ public class VertexAiService {
             JsonObject messageObj = firstChoice.getAsJsonObject("message");
             if (!messageObj.has("content")) return "{\"error\": \"No content in message\"}";
 
-            String assistantText = messageObj.get("content").getAsString();
-            return assistantText;
+            return messageObj.get("content").getAsString();
 
         } catch (Exception e) {
             // Return JSON-like error for Postman readability
