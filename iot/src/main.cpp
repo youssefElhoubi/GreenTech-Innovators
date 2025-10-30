@@ -2,10 +2,10 @@
 #include <WebSocketsClient.h>
 #include <ArduinoJson.h>
 
-const char* ssid = "DIRECT-fh-HUAWEI Mate";
-const char* password = "AJ3U2UAP";
+const char* ssid = "Youcode";
+const char* password = "Youcode@2024";
 
-const char* ws_server = "192.168.49.164";
+const char* ws_server = "192.168.9.70";
 const int ws_port = 8080;
 const char* ws_path = "/ws-native";
 
@@ -89,7 +89,7 @@ void loop() {
 
     StaticJsonDocument<200> json;
     json["device"] = "ESP32";
-    json["temperature"] = random(20, 30);
+    json["temp"] = random(20, 30);
     json["humidity"] = random(30, 80);
 
     String payloadJson;
