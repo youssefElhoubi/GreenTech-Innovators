@@ -1,5 +1,6 @@
 package com.greentechinnovators.controllers;
 
+import com.greentechinnovators.dto.DataDto;
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.service.DataService;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class dataController {
     }
 
     @PostMapping
-    public ResponseEntity<?> add(@RequestBody Data data) {
+    public ResponseEntity<?> add(@RequestBody DataDto data) {
         dataService.add(data);
         return ResponseEntity.ok("new data was added");
     }
