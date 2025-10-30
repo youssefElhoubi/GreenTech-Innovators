@@ -1,77 +1,72 @@
 package com.greentechinnovators.service;
 
-import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
-import javax.net.ssl.*;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class VertexAiService {
 
-    private final String apiKey = "sk-971bc6d345a64397b2661db962c2889d";
-    private final String apiUrl = "https://api.depsek.com/v1/predict";
-    private final OkHttpClient client;
+    private String apiKey;
 
-    public VertexAiService() throws NoSuchAlgorithmException, KeyManagementException {
-        // 1️⃣ Trust manager that trusts everything
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[]{}; }
-                    public void checkClientTrusted(X509Certificate[] chain, String authType) {}
-                    public void checkServerTrusted(X509Certificate[] chain, String authType) {}
-                }
-        };
+    private String apiUrl;
 
-        // 2️⃣ Initialize SSL context
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+    private final RestTemplate restTemplate;
 
-        // 3️⃣ Get the socket factory from the SSL context
-        SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-        // 4️⃣ Build OkHttpClient with SSL bypass
-        this.client = new OkHttpClient.Builder()
-                .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
-                .hostnameVerifier((hostname, session) -> true)
-                .build();
+    public VertexAiService(
+            @Value("${vertex.api.key}") String apiKey,
+            @Value("${vertex.api.url}") String apiUrl
+    ) {
+        this.apiKey =apiKey;
+        this.apiUrl =apiUrl;
+        // Initialize RestTemplate
+        this.restTemplate = new RestTemplate();
+        // Optional: set base URL
+        this.restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory(apiUrl));
     }
 
+    /**
+     * Sends the user input (promptText) to the external AI API and returns the API response as a string.
+     */
     public String ask(String promptText) {
-        String jsonPayload = "{\"input\":\"" + escapeJson(promptText) + "\"}";
+        // 🧩 Create the request body as a Map instead of manually writing JSON
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("input", promptText);
 
-        RequestBody body = RequestBody.create(
-                jsonPayload,
-                MediaType.get("application/json")
-        );
+        // 🧾 Prepare headers for JSON + authentication
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
 
-        Request request = new Request.Builder()
-                .url(apiUrl + "?api_key=" + apiKey)
-                .post(body)
-                .build();
+        // 👉 Most APIs expect the key as a Bearer token, but your API uses ?api_key= query param.
+        // If yours supports Bearer tokens, use:
+        // headers.setBearerAuth(apiKey);
 
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                return "{\"error\": \"HTTP " + response.code() + " - " + response.message() + "\"}";
-            }
+        // 📦 Combine headers and body
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            if (response.body() != null) {
-                return response.body().string();
-            } else {
-                return "{\"error\": \"Empty response\"}";
-            }
+        try {
+            // 🚀 Send POST request to the external API
+            //     ↓↓↓ THIS is where you send data to the external API ↓↓↓
+            ResponseEntity<String> response = restTemplate.exchange(
+                    apiUrl + "?api_key=" + apiKey, // full URL
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+            // ↑↑↑ END of external API call ↑↑↑
+
+            // ✅ Return the raw JSON response body
+            return response.getBody();
+
         } catch (Exception e) {
-            return "{\"error\": \"Exception: " + e.getMessage() + "\"}";
+            // Handle network or API errors safely
+            return "{\"error\": \"" + e.getMessage() + "\"}";
         }
-    }
-
-    private String escapeJson(String text) {
-        return text.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r");
     }
 }

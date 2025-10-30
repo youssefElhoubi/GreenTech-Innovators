@@ -2,22 +2,39 @@
 <html>
 <head>
     <title>GreenTech - Test</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f0f0; }
-        #data { max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #fff; }
-        div { margin-bottom: 5px; border-bottom: 1px solid #eee; padding: 4px;}
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+
+        #data {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #fff;
+        }
+
+        div {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding: 4px;
+        }
     </style>
 </head>
 <body>
-    <h2>WebSocket</h2>
-    <div id="data"> connection ...</div>
+<h2>WebSocket</h2>
+<div id="data"> connection ...</div>
 
-    <script>
-        var stompClient = null;
-        function connect() {
-            var socket = new SockJS('/ws'); 
+<script>
+    var stompClient = null;
+
+    function connect() {
+        try {
+            var socket = new SockJS('http://10.245.32.124:8080/ws-native');
             stompClient = Stomp.over(socket);
             stompClient.connect({}, function (frame) {
                 console.log('Connected: ' + frame);
@@ -29,19 +46,22 @@
 
                 stompClient.send("/app/getData", {}, "");
             });
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function showData(dataList) {
-            var container = document.getElementById('data');
-            container.innerHTML = '';
+    function showData(dataList) {
+        var container = document.getElementById('data');
+        container.innerHTML = '';
 
-            dataList.slice().reverse().forEach(function(data) {
-                var el = document.createElement('div');
-                el.innerHTML = '<b>Temp:</b> ' + data.temp + ' C | <b>Humidity:</b> ' + data.humidity + ' %';
-                container.appendChild(el);
-            });
-        }
-        connect();
-    </script>
+        dataList.slice().reverse().forEach(function (data) {
+            var el = document.createElement('div');
+            el.innerHTML = '<b>Temp:</b> ' + data.temp + ' C | <b>Humidity:</b> ' + data.humidity + ' %';
+            container.appendChild(el);
+        });
+    }
+    connect();
+</script>
 </body>
 </html>
