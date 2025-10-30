@@ -4,7 +4,6 @@ import com.greentechinnovators.dto.DataDto;
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.mappers.DataMapper;
 import com.greentechinnovators.repository.DataRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
@@ -25,7 +24,7 @@ public class DataService {
 
     public Data add(DataDto dto) {
         Data entity = DataMapper.toEntity(dto);
-        entity.setTimestamp(LocalDateTime.now()); 
+        entity.setTimestamp(LocalDateTime.now());
         return dataRepository.save(entity);
     }
 

@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class StationDto {
@@ -29,9 +31,9 @@ public class StationDto {
 
     private String cityId;
 
-    private DataDto data;
+    private List<DataDto> data;
 
-    public StationDto(String id, String name, Double latitude, Double longitude, String adresseMAC, String cityId, DataDto data) {
+    public StationDto(String id, String name, Double latitude, Double longitude, String adresseMAC, String cityId, List<DataDto> data) {
         this.id = id;
         this.name = name;
         this.latitude = latitude;

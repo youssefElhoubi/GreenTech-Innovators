@@ -6,6 +6,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Document(collection = "stations")
@@ -24,11 +26,11 @@ public class Station {
 
     // Reference to the data sensors installed
     @DBRef(lazy = true)
-    private Data data;
+    private List<Data> data;
 
     public Station() {}
 
-    public Station(String id, String name, Double latitude, Double longitude, String adressMAC, City city, Data data) {
+    public Station(String id, String name, Double latitude, Double longitude, String adressMAC, City city, List<Data> data) {
         this.id = id;
         this.name = name;
         this.latitude = latitude;

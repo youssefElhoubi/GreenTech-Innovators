@@ -17,7 +17,7 @@ public class StationMapper {
         dto.setLongitude(station.getLongitude());
         dto.setAdresseMAC(station.getAddressMAC());
         dto.setCityId(station.getCity() != null ? station.getCity().getId() : null);
-        dto.setData(DataMapper.toDto(station.getData()));
+        dto.setData(station.getData().stream().map(DataMapper::toDto).toList());
         return dto;
     }
 
@@ -31,7 +31,7 @@ public class StationMapper {
         station.setLongitude(dto.getLongitude());
         station.setAddressMAC(dto.getAdresseMAC());
         // City reference is set later by service
-        station.setData(DataMapper.toEntity(dto.getData()));
+        station.setData(dto.getData().stream().map(DataMapper::toEntity).toList());
         return station;
     }
 }

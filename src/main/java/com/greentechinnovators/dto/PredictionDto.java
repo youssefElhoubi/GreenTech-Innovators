@@ -1,5 +1,6 @@
 package com.greentechinnovators.dto;
 
+import com.greentechinnovators.entity.City;
 import com.greentechinnovators.enums.PredictionStatus;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -35,4 +36,5 @@ public class PredictionDto {
 
     public PredictionDto() {
     }
+
 }
