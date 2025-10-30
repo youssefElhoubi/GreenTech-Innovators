@@ -3,29 +3,38 @@ package com.greentechinnovators.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
 @Getter
 @Setter
+@Document(collection = "stations")
 public class Station {
+
     @Id
     private String id;
-    private String city;
+    private String name;
     private Double latitude;
     private Double longitude;
-    private String adresseMAC;
-    private String[] capteursInstallés;
+    private String addressMAC;
 
-    public Station(String id, String city, Double latitude, Double longitude, String adresseMAC, String[] capteursInstallés) {
+    // Reference to city (avoid circular data embedding)
+    @DBRef(lazy = true)
+    private City city;
+
+    // Reference to the data sensors installed
+    @DBRef(lazy = true)
+    private Data data;
+
+    public Station() {}
+
+    public Station(String id, String name, Double latitude, Double longitude, String adressMAC, City city, Data data) {
         this.id = id;
-        this.city = city;
+        this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.adresseMAC = adresseMAC;
-        this.capteursInstallés = capteursInstallés;
-    }
-
-    public Station() {
+        this.addressMAC = adressMAC;
+        this.city = city;
+        this.data = data;
     }
 }

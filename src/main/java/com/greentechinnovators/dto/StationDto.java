@@ -1,44 +1,44 @@
 package com.greentechinnovators.dto;
 
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import jakarta.validation.constraints.*;
 
 @Getter
 @Setter
 public class StationDto {
 
-    @NotBlank(message = "City must not be blank")
-    private String city;
+    private String id;
 
-    @NotNull(message = "Latitude must not be null")
-    @DecimalMin(value = "-90.0", message = "Latitude must be greater than or equal to -90.0")
-    @DecimalMax(value = "90.0", message = "Latitude must be less than or equal to 90.0")
+    @NotBlank(message = "Station name is required")
+    @Size(min = 2, max = 100, message = "Station name must be between 2 and 100 characters")
+    private String name;
+
+    @NotNull(message = "Latitude is required")
+    @DecimalMin(value = "-90.0", message = "Latitude cannot be less than -90")
+    @DecimalMax(value = "90.0", message = "Latitude cannot be greater than 90")
     private Double latitude;
 
-    @NotNull(message = "Longitude must not be null")
-    @DecimalMin(value = "-180.0", message = "Longitude must be greater than or equal to -180.0")
-    @DecimalMax(value = "180.0", message = "Longitude must be less than or equal to 180.0")
+    @NotNull(message = "Longitude is required")
+    @DecimalMin(value = "-180.0", message = "Longitude cannot be less than -180")
+    @DecimalMax(value = "180.0", message = "Longitude cannot be greater than 180")
     private Double longitude;
 
-    @NotBlank(message = "MAC address must not be blank")
-    @Pattern(
-            regexp = "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$",
-            message = "Invalid MAC address format"
-    )
+    @NotBlank(message = "MAC address is required")
     private String adresseMAC;
 
-    @NotNull(message = "Installed sensors list must not be null")
-    @Size(min = 1, message = "At least one sensor must be installed")
-    private String[] capteursInstallés;
+    private String cityId;
 
-    public StationDto(String city, Double latitude, Double longitude, String adresseMAC, @NotNull(message = "Installed sensors list must not be null") @Size(min = 1, message = "At least one sensor must be installed") String[] capteursInstallés) {
-        this.city = city;
+    private DataDto data;
+
+    public StationDto(String id, String name, Double latitude, Double longitude, String adresseMAC, String cityId, DataDto data) {
+        this.id = id;
+        this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
         this.adresseMAC = adresseMAC;
-        this.capteursInstallés = capteursInstallés;
+        this.cityId = cityId;
+        this.data = data;
     }
 
     public StationDto() {

@@ -7,13 +7,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataMapper {
 
-    // ✅ Convert DTO -> Entity
-    public Data toEntity(DataDto dto) {
-        if (dto == null) {
-            return null;
-        }
+    public static DataDto toDto(Data data) {
+        if (data == null) return null;
+
+        DataDto dto = new DataDto();
+        dto.setId(data.getId());
+        dto.setTemp(data.getTemp());
+        dto.setHumidity(data.getHumidity());
+        dto.setPression(data.getPression());
+        dto.setCo2(data.getCo2());
+        dto.setGas(data.getGas());
+        dto.setUv(data.getUv());
+        dto.setLumiere(data.getLumiere());
+        return dto;
+    }
+
+    public static Data toEntity(DataDto dto) {
+        if (dto == null) return null;
 
         Data data = new Data();
+        data.setId(dto.getId());
         data.setTemp(dto.getTemp());
         data.setHumidity(dto.getHumidity());
         data.setPression(dto.getPression());
@@ -21,25 +34,6 @@ public class DataMapper {
         data.setGas(dto.getGas());
         data.setUv(dto.getUv());
         data.setLumiere(dto.getLumiere());
-
         return data;
-    }
-
-    // ✅ Convert Entity -> DTO
-    public DataDto toDto(Data entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        DataDto dto = new DataDto();
-        dto.setTemp(entity.getTemp());
-        dto.setHumidity(entity.getHumidity());
-        dto.setPression(entity.getPression());
-        dto.setCo2(entity.getCo2());
-        dto.setGas(entity.getGas());
-        dto.setUv(entity.getUv());
-        dto.setLumiere(entity.getLumiere());
-
-        return dto;
     }
 }

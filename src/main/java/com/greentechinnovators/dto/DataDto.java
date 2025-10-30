@@ -1,32 +1,43 @@
 package com.greentechinnovators.dto;
 
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
 public class DataDto {
-    @NotNull(message = "temp must not be null")
+
+    private String id;
+
+    @NotNull(message = "Temperature is required")
     private Double temp;
-    @NotNull(message = "humidity must not be null")
+
+    @NotNull(message = "Humidity is required")
     private Float humidity;
-    @NotNull(message = "pression must not be null")
+
+    @NotNull(message = "Pression is required")
+    @PositiveOrZero(message = "Pression cannot be negative")
     private Integer pression;
-    @NotNull(message = "co2 must not be null")
+
+    @NotNull(message = "CO2 value is required")
+    @PositiveOrZero(message = "CO2 cannot be negative")
     private Integer co2;
-    @NotNull(message = "gas must not be null")
+
+    @NotNull(message = "Gas value is required")
+    @PositiveOrZero(message = "Gas cannot be negative")
     private Integer gas;
-    @NotNull(message = "uv must not be null")
+
+    @NotNull(message = "UV index is required")
+    @DecimalMin(value = "0.0", message = "UV cannot be negative")
     private Double uv;
-    @NotNull(message = " lumiere not be null")
+
+    @NotNull(message = "Lumiere is required")
+    @PositiveOrZero(message = "Lumiere cannot be negative")
     private Integer lumiere;
 
-    public DataDto() {
-    }
-
-    public DataDto( Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere) {
+    public DataDto(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere) {
+        this.id = id;
         this.temp = temp;
         this.humidity = humidity;
         this.pression = pression;
@@ -34,5 +45,8 @@ public class DataDto {
         this.gas = gas;
         this.uv = uv;
         this.lumiere = lumiere;
+    }
+
+    public DataDto() {
     }
 }
