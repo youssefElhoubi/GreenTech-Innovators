@@ -5,7 +5,7 @@
 const char* ssid = "Youcode";
 const char* password = "Youcode@2024";
 
-const char* ws_server = "192.168.9.70";
+const char* ws_server = "192.168.9.28";
 const int ws_port = 8080;
 const char* ws_path = "/ws-native";
 
@@ -79,7 +79,6 @@ void setup() {
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
 }
-
 void loop() {
   webSocket.loop();
 
@@ -87,10 +86,16 @@ void loop() {
   if (isStompConnected && millis() - lastSend > 5000) {
     lastSend = millis();
 
-    StaticJsonDocument<200> json;
+    StaticJsonDocument<300> json;
+    
     json["device"] = "ESP32";
-    json["temp"] = random(20, 30);
-    json["humidity"] = random(30, 80);
+    json["temp"] = random(20, 30);      // (DHT22)
+    json["humidity"] = random(30, 80);  // (DHT22)
+    json["pressure"] = random(1000, 1020); // (BMP280)
+    json["co2"] = random(400, 600);      // (MQ-135)
+    json["gas"] = random(30, 70);        // (MICS-5524)
+    json["uv"] = random(1, 11);         // (ML8511)
+    json["light"] = random(5000, 12000); // (BH1750)
 
     String payloadJson;
     serializeJson(json, payloadJson);
@@ -103,6 +108,6 @@ void loop() {
     sendFrame += payloadJson;
 
     sendStompFrame(sendFrame);
-    Serial.println(" Sent JSON data to Spring Boot!");
+    Serial.println(" Sent FULL JSON data to Spring Boot!");
   }
 }
