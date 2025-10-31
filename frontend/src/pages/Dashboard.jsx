@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React,{ useState, useEffect, useCallback } from 'react';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import MapView from '../components/MapView';

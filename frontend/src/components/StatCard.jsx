@@ -1,3 +1,4 @@
+import React from 'react';
 function StatCard({ icon, label, value, trend, trendIcon, trendText, color, gradient, shadow, tooltip }) {
   return (
     <div 

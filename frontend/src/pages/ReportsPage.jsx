@@ -1,3 +1,4 @@
+import React from 'react';
 function ReportsPage() {
   const downloadReport = (reportId, format) => {
     alert(`📥 Téléchargement du rapport ${reportId} au format ${format.toUpperCase()}...\n\nCette fonctionnalité sera connectée à votre backend pour générer les vrais rapports.`);

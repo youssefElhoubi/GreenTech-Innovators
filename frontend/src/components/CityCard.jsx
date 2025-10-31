@@ -1,3 +1,4 @@
+import React from 'react';
 import { getColor, getColorWithAlpha } from '../utils/helpers';
 import { cityCodes } from '../data/cities';
 

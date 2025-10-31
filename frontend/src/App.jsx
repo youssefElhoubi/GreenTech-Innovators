@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React ,{ useState, useEffect } from 'react';
 import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
 import AIPage from './pages/AIPage';

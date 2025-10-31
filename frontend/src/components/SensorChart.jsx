@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React,{ useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { generateHourlyData } from '../utils/helpers';
 import { cityDataBases, sensorVariances } from '../data/cities';

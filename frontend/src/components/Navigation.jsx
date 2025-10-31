@@ -1,3 +1,4 @@
+import React from 'react';
 import { themes, themeNames } from '../data/themes';
 
 function Navigation({ activePage, onPageChange, theme, onThemeChange }) {
