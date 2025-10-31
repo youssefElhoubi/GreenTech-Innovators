@@ -20,9 +20,8 @@ public class Data {
     private Double uv;
     private Integer lumiere;
     private LocalDateTime timestamp;// <-- add this
-    private String mac;
 
-    public Data(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere, LocalDateTime timestamp , String mac) {
+    public Data(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere, LocalDateTime timestamp) {
         this.id = id;
         this.temp = temp;
         this.humidity = humidity;
@@ -32,7 +31,6 @@ public class Data {
         this.uv = uv;
         this.lumiere = lumiere;
         this.timestamp = timestamp;
-        this.mac = mac;
     }
 
     public Data() {

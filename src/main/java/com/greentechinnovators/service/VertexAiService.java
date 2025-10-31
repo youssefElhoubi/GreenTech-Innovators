@@ -30,15 +30,18 @@ public class VertexAiService {
     private final ObjectMapper objectMapper;
 
     public VertexAiService(
-            @Value("${ai.api.key:sk-971bc6d345a64397b2661db962c2889d}") String apiKey,
-            @Value("${ai.api.url:https://api.deepseek.com/chat/completions}") String apiUrl,
+            @Value("${vertex.api.key}") String apiKey,
+            @Value("${vertex.api.url}") String apiUrl,
             ObjectMapper objectMapper
     ) {
         this.objectMapper = objectMapper;
         this.apiKey = apiKey;
         this.apiUrl = apiUrl;
         boolean insecureTls = Boolean.parseBoolean(System.getenv().getOrDefault("INSECURE_TLS", "false"));
-        this.client = insecureTls ? createInsecureClientWithSni() : createSecureClient();
+        // this.client = insecureTls ? createInsecureClientWithSni() : createSecureClient();
+        
+        this.client = createSecureClient();
+
     }
 
 
@@ -257,4 +260,36 @@ public class VertexAiService {
             return new OkHttpClient();
         }
     }
+
+// ===========================  TURN OFF SNI ===========================
+    private OkHttpClient createInsecureClientWithoutSni() {
+    try {
+        final TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+            }
+        };
+
+        final SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+        SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+        return new OkHttpClient.Builder()
+                .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
+                .hostnameVerifier((hostname, session) -> true)
+                .callTimeout(Duration.ofSeconds(120))
+                .connectTimeout(Duration.ofSeconds(15))
+                .readTimeout(Duration.ofSeconds(120))
+                .writeTimeout(Duration.ofSeconds(15))
+                .build();
+
+    } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        e.printStackTrace();
+        return new OkHttpClient();
+    }
+}
+
 }
