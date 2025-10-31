@@ -1288,7 +1288,7 @@
             text-transform: uppercase;
         }
 
-        .badge-critical { background: #ef4444; color: white; }
+        .badge-danger { background: #ef4444; color: white; }
         .badge-warning { background: #f59e0b; color: white; }
         .badge-normal { background: #10b981; color: white; }
 
@@ -1692,7 +1692,7 @@
             border-color: #f59e0b;
         }
 
-        .calendar-event.event-critical {
+        .calendar-event.event-danger {
             background: rgba(239, 68, 68, 0.1);
             border-color: #ef4444;
         }
@@ -1839,7 +1839,7 @@
 
         .event-row.event-normal { border-color: #10b981; }
         .event-row.event-warning { border-color: #f59e0b; }
-        .event-row.event-critical { border-color: #ef4444; }
+        .event-row.event-danger { border-color: #ef4444; }
 
         .event-row:hover {
             background: rgba(255, 255, 255, 0.08);
