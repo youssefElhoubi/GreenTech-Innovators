@@ -10,39 +10,130 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.net.ssl.*;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Consumer;
 
 @Service
 public class VertexAiService {
 
-    private final String apiKey  ;
+    private final String apiKey;
     private final String apiUrl;
     private final OkHttpClient client;
     private final ObjectMapper objectMapper;
 
     public VertexAiService(
-            @Value("sk-971bc6d345a64397b2661db962c2889d") String apiKey,
-            @Value("https://api.deepseek.com/chat/completions") String apiUrl,
+            @Value("${ai.api.key:sk-971bc6d345a64397b2661db962c2889d}") String apiKey,
+            @Value("${ai.api.url:https://api.deepseek.com/chat/completions}") String apiUrl,
             ObjectMapper objectMapper
     ) {
-        this.objectMapper =objectMapper;
+        this.objectMapper = objectMapper;
         this.apiKey = apiKey;
         this.apiUrl = apiUrl;
-        // Control flag (set INSECURE_TLS=true in env for dev only)
         boolean insecureTls = Boolean.parseBoolean(System.getenv().getOrDefault("INSECURE_TLS", "false"));
         this.client = insecureTls ? createInsecureClientWithSni() : createSecureClient();
     }
 
-    // Public method: returns assistant content or JSON error string
+
+    public void askStream(String systemMessageContent, String userMessageContent, Consumer<String> onChunk) 
+            throws IOException {
+        
+        Map<String, Object> jsonPayload = new HashMap<>();
+        jsonPayload.put("model", "deepseek-chat");
+        jsonPayload.put("stream", true);
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", systemMessageContent);
+
+        Map<String, String> userMsg = new HashMap<>();
+        userMsg.put("role", "user");
+        userMsg.put("content", userMessageContent);
+
+        messages.add(systemMessage);
+        messages.add(userMsg);
+        jsonPayload.put("messages", messages);
+
+        String payload = objectMapper.writeValueAsString(jsonPayload);
+        RequestBody body = RequestBody.create(payload, MediaType.get("application/json"));
+
+        Request request = new Request.Builder()
+                .url(apiUrl)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                onChunk.accept("{\"error\": \"HTTP " + response.code() + " - " + response.message() + "\"}");
+                return;
+            }
+
+            if (response.body() == null) {
+                onChunk.accept("{\"error\": \"Empty response body\"}");
+                return;
+            }
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(response.body().byteStream()))) {
+                
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("data: ")) {
+                        String data = line.substring(6).trim();
+                        
+                        if (data.equals("[DONE]")) {
+                            break;
+                        }
+
+                        if (data.isEmpty()) {
+                            continue;
+                        }
+
+                        try {
+                            JsonObject json = JsonParser.parseString(data).getAsJsonObject();
+                            
+                            if (json.has("choices")) {
+                                JsonArray choices = json.getAsJsonArray("choices");
+                                if (choices.size() > 0) {
+                                    JsonObject choice = choices.get(0).getAsJsonObject();
+                                    
+                                    if (choice.has("delta")) {
+                                        JsonObject delta = choice.getAsJsonObject("delta");
+                                        
+                                        if (delta.has("content")) {
+                                            String content = delta.get("content").getAsString();
+                                            onChunk.accept(content);
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error parsing chunk: " + e.getMessage());
+                        }
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            onChunk.accept("{\"error\": \"IOException: " + e.getMessage() + "\"}");
+            throw e;
+        }
+    }
+
+
     public String ask(String systemMessageContent, String userMessageContent) throws JsonProcessingException {
         Map<String, Object> jsonPayload = new HashMap<>();
-
         jsonPayload.put("model", "deepseek-chat");
         jsonPayload.put("stream", false);
 
@@ -50,31 +141,30 @@ public class VertexAiService {
 
         Map<String, String> systemMessage = new HashMap<>();
         systemMessage.put("role", "system");
-        systemMessage.put("content", escapeJson(systemMessageContent));
+        systemMessage.put("content", systemMessageContent);
 
         Map<String, String> userMsg = new HashMap<>();
         userMsg.put("role", "user");
-        userMsg.put("content", escapeJson(userMessageContent));
+        userMsg.put("content", userMessageContent);
 
         messages.add(systemMessage);
         messages.add(userMsg);
-
         jsonPayload.put("messages", messages);
 
         String payload = objectMapper.writeValueAsString(jsonPayload);
-
         RequestBody body = RequestBody.create(payload, MediaType.get("application/json"));
 
         Request request = new Request.Builder()
                 .url(apiUrl)
                 .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                Map<String,Object> error = new HashMap<>();
-                error.put("error","HTTP " + response.code() + " - "  + response.message() );
+                Map<String, Object> error = new HashMap<>();
+                error.put("error", "HTTP " + response.code() + " - " + response.message());
                 return objectMapper.writeValueAsString(error);
             }
 
@@ -96,23 +186,25 @@ public class VertexAiService {
             return messageObj.get("content").getAsString();
 
         } catch (Exception e) {
-            return "{\"error\": \"Exception: " + escapeJson(e.getMessage() == null ? e.toString() : e.getMessage()) + "\"}";
+            return "{\"error\": \"Exception: " + (e.getMessage() == null ? e.toString() : e.getMessage()) + "\"}";
         }
     }
 
     public String ask(String userMessage) throws JsonProcessingException {
-        return ask("You are a helpful assistant.", userMessage);
+        return ask("You are a helpful assistant in climate domain and environmental data analysis.", userMessage);
     }
-    // ---------------- Secure OkHttpClient (recommended) ----------------
+
+    // ============= HTTP Client Configuration =============
+    
     private OkHttpClient createSecureClient() {
         return new OkHttpClient.Builder()
-                .callTimeout(Duration.ofSeconds(60))
+                .callTimeout(Duration.ofSeconds(120))
                 .connectTimeout(Duration.ofSeconds(15))
                 .readTimeout(Duration.ofSeconds(120))
+                .writeTimeout(Duration.ofSeconds(15))
                 .build();
     }
 
-    // ---------------- Insecure client with SNI wrapper (dev only) ----------------
     private OkHttpClient createInsecureClientWithSni() {
         try {
             final TrustManager[] trustAllCerts = new TrustManager[]{
@@ -127,7 +219,6 @@ public class VertexAiService {
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             final SSLSocketFactory defaultFactory = sslContext.getSocketFactory();
 
-            // wrap factory to set SNI on sockets when hostname is provided
             SSLSocketFactory sniFactory = new SSLSocketFactory() {
                 private final SSLSocketFactory delegate = defaultFactory;
 
@@ -154,23 +245,16 @@ public class VertexAiService {
 
             return new OkHttpClient.Builder()
                     .sslSocketFactory(sniFactory, (X509TrustManager) trustAllCerts[0])
-                    .hostnameVerifier((hostname, session) -> true) // DEV ONLY
-                    .callTimeout(Duration.ofSeconds(60))
+                    .hostnameVerifier((hostname, session) -> true)
+                    .callTimeout(Duration.ofSeconds(120))
                     .connectTimeout(Duration.ofSeconds(15))
                     .readTimeout(Duration.ofSeconds(120))
+                    .writeTimeout(Duration.ofSeconds(15))
                     .build();
 
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
             return new OkHttpClient();
         }
-    }
-
-    // ---------------- Utilities ----------------
-    private String escapeJson(String text) {
-        if (text == null) return "";
-        return text.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r");
     }
 }
