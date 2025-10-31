@@ -46,11 +46,15 @@ public class CityService {
                 .orElse(null);
     }
 
-    public CityDto createCity(CityDto dto) {
-        City city = cityMapper.toEntity(dto);
-        City saved = cityRepository.save(city);
-        return cityMapper.toDto(saved);
+    public City createCity(String cityName) {
+        return cityRepository.findByName(cityName)
+                .orElseGet(() -> {
+                    City newCity = new City();
+                    newCity.setName(cityName);
+                    return cityRepository.save(newCity);
+                });
     }
+
 
     public CityDto updateCity(String id, CityDto dto) {
         return cityRepository.findById(id)

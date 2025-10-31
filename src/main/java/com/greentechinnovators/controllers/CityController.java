@@ -33,11 +33,11 @@ public class CityController {
     }
 
     // ✅ Create new city
-    @PostMapping
-    public ResponseEntity<CityDto> createCity(@Valid @RequestBody CityDto cityDto) {
-        CityDto created = cityService.createCity(cityDto);
-        return ResponseEntity.ok(created);
-    }
+//    @PostMapping
+//    public ResponseEntity<CityDto> createCity(@Valid @RequestBody CityDto cityDto) {
+//        CityDto created = cityService.createCity(cityDto);
+//        return ResponseEntity.ok(created);
+//    }
 
     // ✅ Update city
     @PutMapping("/{id}")
