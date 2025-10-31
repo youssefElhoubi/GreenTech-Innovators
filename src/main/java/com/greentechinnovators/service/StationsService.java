@@ -29,6 +29,12 @@ public class StationsService {
     public List<Station> all() {
         return stationRepository.findAll();
     }
+    public Station findByAddressMAC(String addressMAC) {
+        return stationRepository.findByAddressMAC(addressMAC);
+    }
+    public Station updateStation(Station station) {
+        return stationRepository.save(station);
+    }
 
 
 }
