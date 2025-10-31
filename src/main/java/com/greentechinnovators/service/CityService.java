@@ -101,8 +101,7 @@ public class CityService {
                             dto.setAdresseMAC(station.getAddressMAC());
                             dto.setData(station.getData().stream().map(DataMapper::toDto).collect(Collectors.toList()));
                             return dto;
-                        })
-                        .collect(Collectors.toList()))
+                        }).collect(Collectors.toList()))
                 .orElse(null);
     }
 }

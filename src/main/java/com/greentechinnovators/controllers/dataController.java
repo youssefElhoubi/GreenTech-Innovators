@@ -29,4 +29,12 @@ public class dataController {
         dataService.add(data);
         return ResponseEntity.ok("new data was added");
     }
+    @GetMapping("past/week")
+    public List<Data> pastWeek() {
+        return dataService.getLastWeekData();
+    }
+    @GetMapping("past/mount")
+    public List<Data> pastMount() {
+        return dataService.getLastMonthData();
+    }
 }
