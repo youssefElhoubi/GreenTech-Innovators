@@ -1,7 +1,9 @@
 package com.greentechinnovators.controllers;
 
+import com.greentechinnovators.dto.DataDto;
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.service.DataService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,16 @@ public class dataController {
     }
 
     @PostMapping
-    public ResponseEntity<?> add(@RequestBody Data data) {
+    public ResponseEntity<?> add(@Valid @RequestBody DataDto data) {
         dataService.add(data);
         return ResponseEntity.ok("new data was added");
+    }
+    @GetMapping("past/week")
+    public List<Data> pastWeek() {
+        return dataService.getLastWeekData();
+    }
+    @GetMapping("past/mount")
+    public List<Data> pastMount() {
+        return dataService.getLastMonthData();
     }
 }
