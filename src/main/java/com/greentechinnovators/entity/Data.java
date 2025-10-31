@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -12,26 +13,27 @@ public class Data {
     @Id
     private String id;
     private Double temp;
-    private Double humidity;
-    private Double pressure; // (BMP280)
-    private Double co2;      // (MQ-135)
-    private Double gas;      // (MICS-5524)
-    private Double uv;       // (ML8511)
-    private Double light;    // (BH1750)
-    private String device;   // (ESP32)
+    private Float humidity;
+    private Integer pression;
+    private Integer co2;
+    private Integer gas;
+    private Double uv;
+    private Integer lumiere;
+    private LocalDateTime timestamp; // <-- add this
 
-    public Data(String id, Double temp, Double humidity, Double pressure, Double co2, Double gas, Double uv, Double light, String device) {
-        this.id=id;
+    public Data(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere, LocalDateTime timestamp) {
+        this.id = id;
         this.temp = temp;
         this.humidity = humidity;
-        this.pressure = pressure;
+        this.pression = pression;
         this.co2 = co2;
         this.gas = gas;
         this.uv = uv;
-        this.light = light;
-        this.device = device;
+        this.lumiere = lumiere;
+        this.timestamp = timestamp;
     }
 
     public Data() {
+        this.timestamp = LocalDateTime.now(); // auto-set timestamp for new entries
     }
 }

@@ -1,5 +1,6 @@
 package com.greentechinnovators.controllers;
 
+import com.greentechinnovators.dto.DataDto;
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.service.DataService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -18,9 +19,8 @@ public class DataWebSocketController {
 
     @MessageMapping("/addData")
     @SendTo("/topic/data")
-    public List<Data> addData(Data data) {
-        dataService.add(data);
-        return dataService.all();
+    public Data addData(DataDto data) {
+        return dataService.add(data);
     }
 
     @MessageMapping("/getData")
