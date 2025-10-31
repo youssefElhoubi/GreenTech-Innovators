@@ -1,6 +1,7 @@
 package com.greentechinnovators.controllers;
 
 import com.greentechinnovators.service.VertexAiService;
+import com.greentechinnovators.controllers.VertexAiController.ForecastDay;
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.service.DataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -208,4 +209,71 @@ public class VertexAiController {
             this.prompt = prompt;
         }
     }
+
+   
+
+
+    public static class ForecastDay {
+    private String day;
+    private String date;
+    private String city;
+    private String predictionTitle;
+    private String eventType;
+    private int confidence;
+
+    // Constructors
+    public ForecastDay() {}
+
+    public ForecastDay(String day, String date, String city, String predictionTitle, 
+                String eventType, int confidence) {
+        this.day = day;
+        this.date = date;
+        this.city = city;
+        this.predictionTitle = predictionTitle;
+        this.eventType = eventType;
+        this.confidence = confidence;
+    }
+
+    // Getters and Setters
+    public String getDay() { return day; }
+    public void setDay(String day) { this.day = day; }
+
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getPredictionTitle() { return predictionTitle; }
+    public void setPredictionTitle(String predictionTitle) { this.predictionTitle = predictionTitle; }
+
+    public String getEventType() { return eventType; }
+    public void setEventType(String eventType) { this.eventType = eventType; }
+
+    public int getConfidence() { return confidence; }
+    public void setConfidence(int confidence) { this.confidence = confidence; }
+}
+
+// Add this method to parse the cached forecast
+public List<ForecastDay> parseCachedForecast() {
+    try {
+        String cachedJson = forecastCache.get("latestForecast");
+        if (cachedJson == null || cachedJson.isEmpty()) {
+            return List.of(); // Return empty list if cache is empty
+        }
+
+        // Parse JSON array to List of ForecastDay objects
+        List<ForecastDay> forecastDays = objectMapper.readValue(
+            cachedJson, 
+            objectMapper.getTypeFactory().constructCollectionType(List.class, ForecastDay.class)
+        );
+
+        return forecastDays;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return List.of(); // Return empty list on error
+    }
+}
+
+
 }
