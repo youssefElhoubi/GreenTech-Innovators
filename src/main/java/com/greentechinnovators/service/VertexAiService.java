@@ -27,8 +27,8 @@ public class VertexAiService {
     private final ObjectMapper objectMapper;
 
     public VertexAiService(
-            @Value("${vertex.api.key}") String apiKey,
-            @Value("${vertex.api.url}") String apiUrl,
+            @Value("sk-971bc6d345a64397b2661db962c2889d") String apiKey,
+            @Value("https://api.deepseek.com/chat/completions") String apiUrl,
             ObjectMapper objectMapper
     ) {
         this.objectMapper =objectMapper;
@@ -40,22 +40,21 @@ public class VertexAiService {
     }
 
     // Public method: returns assistant content or JSON error string
-    public String ask(String userMessage) throws JsonProcessingException {
+    public String ask(String systemMessageContent, String userMessageContent) throws JsonProcessingException {
         Map<String, Object> jsonPayload = new HashMap<>();
 
         jsonPayload.put("model", "deepseek-chat");
         jsonPayload.put("stream", false);
 
-// Create messages list
         List<Map<String, String>> messages = new ArrayList<>();
 
         Map<String, String> systemMessage = new HashMap<>();
         systemMessage.put("role", "system");
-        systemMessage.put("content", "You are a helpful assistant.");
+        systemMessage.put("content", escapeJson(systemMessageContent));
 
         Map<String, String> userMsg = new HashMap<>();
         userMsg.put("role", "user");
-        userMsg.put("content", escapeJson(userMessage));
+        userMsg.put("content", escapeJson(userMessageContent));
 
         messages.add(systemMessage);
         messages.add(userMsg);
@@ -74,7 +73,6 @@ public class VertexAiService {
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                // return structured JSON error string so Postman can parse it
                 Map<String,Object> error = new HashMap<>();
                 error.put("error","HTTP " + response.code() + " - "  + response.message() );
                 return objectMapper.writeValueAsString(error);
@@ -83,7 +81,6 @@ public class VertexAiService {
             String responseBody = response.body() != null ? response.body().string() : "";
             if (responseBody.isEmpty()) return "{\"error\": \"Empty response\"}";
 
-            // Parse with Gson: extract choices[0].message.content safely
             JsonObject root = JsonParser.parseString(responseBody).getAsJsonObject();
             if (!root.has("choices")) return "{\"error\": \"No choices in response\"}";
 
@@ -91,7 +88,6 @@ public class VertexAiService {
             if (choices.size() == 0) return "{\"error\": \"Empty choices array\"}";
 
             JsonObject firstChoice = choices.get(0).getAsJsonObject();
-            // support both message.content or message->content keys
             if (!firstChoice.has("message")) return "{\"error\": \"No message object in first choice\"}";
 
             JsonObject messageObj = firstChoice.getAsJsonObject("message");
@@ -100,11 +96,13 @@ public class VertexAiService {
             return messageObj.get("content").getAsString();
 
         } catch (Exception e) {
-            // Return JSON-like error for Postman readability
             return "{\"error\": \"Exception: " + escapeJson(e.getMessage() == null ? e.toString() : e.getMessage()) + "\"}";
         }
     }
 
+    public String ask(String userMessage) throws JsonProcessingException {
+        return ask("You are a helpful assistant.", userMessage);
+    }
     // ---------------- Secure OkHttpClient (recommended) ----------------
     private OkHttpClient createSecureClient() {
         return new OkHttpClient.Builder()

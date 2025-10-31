@@ -19,4 +19,8 @@ public class DataService {
     public Data add(Data data){
         return dataRepository.save(data);
     }
+
+    public List<Data> latest10() {
+        return dataRepository.findFirst10ByOrderByIdDesc();
+    }
 }
