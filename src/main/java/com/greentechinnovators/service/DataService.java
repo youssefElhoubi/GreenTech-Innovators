@@ -39,4 +39,8 @@ public class DataService {
         LocalDateTime monthAgo = LocalDateTime.now().minusDays(30);
         return dataRepository.findByTimestampAfter(monthAgo);
     }
+
+    public List<Data> latest10() {
+        return dataRepository.findFirst10ByOrderByIdDesc();
+    }
 }

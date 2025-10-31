@@ -19,7 +19,7 @@ public class Data {
     private Integer gas;
     private Double uv;
     private Integer lumiere;
-    private LocalDateTime timestamp; // <-- add this
+    private LocalDateTime timestamp;// <-- add this
 
     public Data(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere, LocalDateTime timestamp) {
         this.id = id;
