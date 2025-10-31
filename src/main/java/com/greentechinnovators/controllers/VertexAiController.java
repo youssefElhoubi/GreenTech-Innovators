@@ -16,9 +16,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vertex")
@@ -28,6 +30,8 @@ public class VertexAiController {
     private final DataService dataService;
     private final ObjectMapper objectMapper;
     private final ExecutorService executorService;
+
+    private final Map<String, String> forecastCache = new HashMap<>();
 
     @Autowired
     public VertexAiController(VertexAiService vertexAiService, DataService dataService, ObjectMapper objectMapper) {
@@ -44,6 +48,8 @@ public class VertexAiController {
     @GetMapping(value = "/forecast-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter getAiForecastStream() {
         SseEmitter emitter = new SseEmitter(180_000L); // 3 minutes timeout
+
+        StringBuilder fullResponse = new StringBuilder();
 
         executorService.execute(() -> {
             try {
@@ -77,6 +83,9 @@ public class VertexAiController {
                 //  Use the Streaming API
                 vertexAiService.askStream(systemPrompt, userPrompt, chunk -> {
                     try {
+                        // Accumulate chunks for caching
+                        fullResponse.append(chunk);
+                        
                         emitter.send(SseEmitter.event()
                                 .name("message")
                                 .data(chunk));
@@ -85,6 +94,10 @@ public class VertexAiController {
                     }
                 });
 
+                // Cache the complete response
+                String finalJsonResponse = fullResponse.toString();
+                forecastCache.put("latestForecast", finalJsonResponse);
+                
                 // Send an end message
                 emitter.send(SseEmitter.event()
                         .name("end")
@@ -106,6 +119,18 @@ public class VertexAiController {
         });
 
         return emitter;
+    }
+
+
+    @GetMapping("/forecast-cache")
+    public ResponseEntity<String> getForecastFromCache() {
+        String latestForecast = forecastCache.get("latestForecast");
+        if (latestForecast == null || latestForecast.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\": \"Cache is empty. Call /forecast-stream first.\"}");
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new ResponseEntity<>(latestForecast, headers, HttpStatus.OK);
     }
 
     /**

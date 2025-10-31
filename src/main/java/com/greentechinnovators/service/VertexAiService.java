@@ -40,8 +40,7 @@ public class VertexAiService {
         boolean insecureTls = Boolean.parseBoolean(System.getenv().getOrDefault("INSECURE_TLS", "false"));
         // this.client = insecureTls ? createInsecureClientWithSni() : createSecureClient();
         
-        this.client = createSecureClient();
-
+        this.client = insecureTls ? createInsecureClientWithoutSni() : createSecureClient();
     }
 
 
