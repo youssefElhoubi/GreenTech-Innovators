@@ -1,38 +1,58 @@
-import React,{ useState } from 'react';
+import React,{ useEffect, useState } from 'react';
 import { initialStations } from '../data/stations';
-
+import { addStation } from '../api/stationsApi';
+import { getAllCities } from '../api/cityApi';
 function StationsPage() {
   const [stations, setStations] = useState(initialStations);
-
+  const [cities, setCities] = useState([]);
   const totalStations = stations.length;
   const onlineStations = stations.filter(s => s.status === 'online').length;
   const offlineStations = stations.filter(s => s.status === 'offline').length;
 
-  const handleAddStation = (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const selectedSensors = [];
-    
-    // Get all checked sensors
-    const checkboxes = e.target.querySelectorAll('input[type="checkbox"]:checked');
-    checkboxes.forEach(cb => selectedSensors.push(cb.value));
-
-    const newStation = {
-      id: stations.length + 1,
-      name: formData.get('name'),
-      city: formData.get('city'),
-      lat: parseFloat(formData.get('lat')),
-      lng: parseFloat(formData.get('lng')),
-      mac: formData.get('mac'),
-      status: 'online',
-      sensors: selectedSensors
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const data = await getAllCities();
+        setCities(data);
+        console.log("Villes récupérées :", data);
+      } catch (err) {
+           setError("Une erreur est survenue lors de la récupération des villes");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setStations([...stations, newStation]);
-    e.target.reset();
-    alert(`✅ Station "${newStation.name}" ajoutée avec succès!`);
+    fetchCities();
+  }, []);
+  
+const handleAddStation = async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+  const selectedSensors = [];
+  e.target.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => selectedSensors.push(cb.value));
+
+  const newStation = {
+    name: formData.get('name'),
+    latitude: parseFloat(formData.get('lat')),
+    longitude: parseFloat(formData.get('lng')),
+    adresseMAC: formData.get('mac'),
+    cityId: formData.get('city'),  
+    data: selectedSensors.map(s => ({ type: s, value: null })), 
+    id: null
   };
+
+  try {
+    const savedStation = await addStation(newStation);
+    setStations([...stations, savedStation]);
+    e.target.reset();
+    alert(`Station "${savedStation.name}" ajoutée avec succès!`);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de la station:', error);
+    alert('Impossible d\'ajouter la station. Veuillez réessayer.');
+  }
+};
+
 
   const handleEditStation = (id) => {
     const station = stations.find(s => s.id === id);
@@ -44,7 +64,7 @@ function StationsPage() {
   const handleDeleteStation = (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette station?')) {
       setStations(stations.filter(s => s.id !== id));
-      alert('✅ Station supprimée avec succès!');
+      alert('Station supprimée avec succès!');
     }
   };
 
@@ -147,16 +167,11 @@ function StationsPage() {
                 </label>
                 <select id="station-city" name="city" required>
                   <option value="">Sélectionnez une ville</option>
-                  <option value="Casablanca">Casablanca</option>
-                  <option value="Rabat">Rabat</option>
-                  <option value="Marrakech">Marrakech</option>
-                  <option value="Fès">Fès</option>
-                  <option value="Tanger">Tanger</option>
-                  <option value="Agadir">Agadir</option>
-                  <option value="Meknès">Meknès</option>
-                  <option value="Oujda">Oujda</option>
-                  <option value="Tétouan">Tétouan</option>
-                  <option value="Safi">Safi</option>
+                 
+                  {cities.map(city => (
+                    <option value={city.id}>{city.name}</option>
+                  ))}
+
                 </select>
               </div>
 
@@ -183,13 +198,13 @@ function StationsPage() {
                   <i className="fas fa-network-wired"></i>
                   Adresse MAC
                 </label>
-                <input 
-                  type="text" 
-                  id="station-mac" 
+                <input
+                  type="text"
+                  id="station-mac"
                   name="mac"
-                  placeholder="AA:BB:CC:DD:EE:FF" 
-                  pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}" 
-                  required 
+                  placeholder="AA:BB:CC:DD:EE:FF"
+                  pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"
+                  required
                 />
               </div>
 
@@ -246,8 +261,8 @@ function StationsPage() {
                     <div className="station-name">{station.name}</div>
                     <div className="station-status-wrapper">
                       <label className="toggle-switch">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           checked={station.status === 'online'}
                           onChange={() => handleToggleStatus(station.id)}
                         />
