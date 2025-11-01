@@ -20,7 +20,7 @@ public class Schedule {
     private CityRepository cityRepository;
     @Autowired
     private PredictionService predictionService;
-    @Scheduled(cron = "0 0 3 * * 1")
+    @Scheduled(cron = "0 * * * * *")
     public void run(){
         VertexAiController forecastDay = new VertexAiController();
         List<VertexAiController.ForecastDay> forecast = forecastDay.parseCachedForecast() ;
