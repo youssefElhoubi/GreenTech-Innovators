@@ -11,10 +11,10 @@
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-const char* ssid = "Youcode";
-const char* password = "Youcode@2024";
+const char* ssid = "YouCode";
+const char* password = "Ycode@2021";
 
-const char* ws_server = "192.168.8.120";
+const char* ws_server = "192.168.8.62";
 const int ws_port = 8080;
 const char* ws_path = "/ws-native";
 

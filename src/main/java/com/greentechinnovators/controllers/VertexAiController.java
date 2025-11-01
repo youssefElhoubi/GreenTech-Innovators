@@ -47,7 +47,6 @@ public class VertexAiController {
         this.objectMapper = new ObjectMapper();
         this.executorService =null;
     }
-
     /**
      *  Fast version with Streaming – the answer appears immediately.
      * GET /api/vertex/forecast-stream
@@ -92,7 +91,7 @@ public class VertexAiController {
                     try {
                         // Accumulate chunks for caching
                         fullResponse.append(chunk);
-
+                        
                         emitter.send(SseEmitter.event()
                                 .name("message")
                                 .data(chunk));
@@ -104,7 +103,7 @@ public class VertexAiController {
                 // Cache the complete response
                 String finalJsonResponse = fullResponse.toString();
                 forecastCache.put("latestForecast", finalJsonResponse);
-
+                
                 // Send an end message
                 emitter.send(SseEmitter.event()
                         .name("end")
@@ -217,8 +216,6 @@ public class VertexAiController {
     }
 
 
-
-
     public static class ForecastDay {
     private String day;
     private String date;
@@ -230,7 +227,7 @@ public class VertexAiController {
     // Constructors
     public ForecastDay() {}
 
-    public ForecastDay(String day, String date, String city, String predictionTitle,
+    public ForecastDay(String day, String date, String city, String predictionTitle, 
                 String eventType, int confidence) {
         this.day = day;
         this.date = date;
@@ -261,7 +258,7 @@ public class VertexAiController {
 }
 
 // Add this method to parse the cached forecast
-public  List<ForecastDay> parseCachedForecast() {
+public List<ForecastDay> parseCachedForecast() {
     try {
         String cachedJson = forecastCache.get("latestForecast");
         if (cachedJson == null || cachedJson.isEmpty()) {
