@@ -1,7 +1,6 @@
 package com.greentechinnovators.controllers;
 
 import com.greentechinnovators.service.VertexAiService;
-import com.greentechinnovators.controllers.VertexAiController.ForecastDay;
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.service.DataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +39,13 @@ public class VertexAiController {
         this.dataService = dataService;
         this.objectMapper = objectMapper;
         this.executorService = Executors.newCachedThreadPool();
+    }
+
+    public VertexAiController() {
+        this.vertexAiService =null;
+        this.dataService =null;
+        this.objectMapper = new ObjectMapper();
+        this.executorService =null;
     }
 
     /**
@@ -86,7 +92,7 @@ public class VertexAiController {
                     try {
                         // Accumulate chunks for caching
                         fullResponse.append(chunk);
-                        
+
                         emitter.send(SseEmitter.event()
                                 .name("message")
                                 .data(chunk));
@@ -98,7 +104,7 @@ public class VertexAiController {
                 // Cache the complete response
                 String finalJsonResponse = fullResponse.toString();
                 forecastCache.put("latestForecast", finalJsonResponse);
-                
+
                 // Send an end message
                 emitter.send(SseEmitter.event()
                         .name("end")
@@ -210,7 +216,7 @@ public class VertexAiController {
         }
     }
 
-   
+
 
 
     public static class ForecastDay {
@@ -224,7 +230,7 @@ public class VertexAiController {
     // Constructors
     public ForecastDay() {}
 
-    public ForecastDay(String day, String date, String city, String predictionTitle, 
+    public ForecastDay(String day, String date, String city, String predictionTitle,
                 String eventType, int confidence) {
         this.day = day;
         this.date = date;
@@ -255,7 +261,7 @@ public class VertexAiController {
 }
 
 // Add this method to parse the cached forecast
-public List<ForecastDay> parseCachedForecast() {
+public  List<ForecastDay> parseCachedForecast() {
     try {
         String cachedJson = forecastCache.get("latestForecast");
         if (cachedJson == null || cachedJson.isEmpty()) {
@@ -264,7 +270,7 @@ public List<ForecastDay> parseCachedForecast() {
 
         // Parse JSON array to List of ForecastDay objects
         List<ForecastDay> forecastDays = objectMapper.readValue(
-            cachedJson, 
+            cachedJson,
             objectMapper.getTypeFactory().constructCollectionType(List.class, ForecastDay.class)
         );
 
