@@ -4,87 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f37ca6d4-02c7-411b-9dd5-5f643042b2a0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/frontend/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/COMMENT_DEMARRER.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/DEMARRAGE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/LANCEMENT_RAPIDE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/STRUCTURE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/App.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/CityCard.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/Header.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/MapView.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/Navigation.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/Particles.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/SensorChart.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/StatCard.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/data/cities.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/data/predictions.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/data/sensors.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/data/stations.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/data/themes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/main.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/pages/AIPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/pages/Dashboard.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/pages/ReportsPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/pages/StationsPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/styles/index.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/utils/helpers.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/start-npx.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/start-npx.ps1" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/start.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/start.ps1" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitattributes" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/include/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/lib/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/platformio.ini" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/src/main.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/iot/test/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mvnw" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mvnw.cmd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/GreenTechInnovatorsApplication.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/config/CorsConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/config/WebSocketConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/controllers/CityController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/controllers/DataWebSocketController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/controllers/PredictionController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/controllers/StationController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/controllers/VertexAiController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/controllers/dataController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/dto/CityDto.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/dto/DataDto.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/dto/PredictionDto.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/dto/StationDto.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/entity/City.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/entity/Data.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/entity/Prediction.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/entity/Station.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/enums/PredictionStatus.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/mappers/CityMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/mappers/DataMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/mappers/PredictionMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/mappers/StationMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/repository/CityRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/repository/DataRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/repository/PredictionRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/repository/StationRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/service/CityService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/service/DataService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/service/PredictionService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/service/StationsService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/greentechinnovators/service/VertexAiService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/greentechinnovators/GreenTechInnovatorsApplicationTests.java" beforeDir="false" />
-    </list>
+    <list default="true" id="f37ca6d4-02c7-411b-9dd5-5f643042b2a0" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -143,6 +63,19 @@
       <command value="mvn install" />
       <command value="mvn compile" />
     </option>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="GreenTechInnovators" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="GreenTechInnovators" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
