@@ -18,7 +18,7 @@ public class City {
     private String name;
 
     // Reference to stations in this city
-    @DBRef(lazy = true)
+    @DBRef
     private List<Station> stations;
 
     public City() {}

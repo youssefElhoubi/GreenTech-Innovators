@@ -7,7 +7,7 @@ import com.greentechinnovators.service.PredictionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -65,5 +65,17 @@ public class PredictionController {
     public ResponseEntity<Void> deletePrediction(@PathVariable String id) {
         predictionService.deletePrediction(id);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/kpis")
+    public Map<String, Object> getKPIs() {
+        return predictionService.getKPIs();
+    }
+
+    @GetMapping("/weekly-accuracy")
+    public ResponseEntity<List<Double>> getWeeklyAccuracy() {
+        List<Double> weeklyAccuracy = predictionService.getWeeklyAccuracy();
+        return ResponseEntity.ok(weeklyAccuracy);
     }
 }
