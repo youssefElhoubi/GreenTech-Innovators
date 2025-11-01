@@ -1,9 +1,8 @@
 import React,{ useEffect, useState } from 'react';
-import { initialStations } from '../data/stations';
-import { addStation } from '../api/stationsApi';
-import { getAllCities } from '../api/cityApi';
+import { addStation ,getAllStations } from '../api/stationsApi';
+import { getAllCities  } from '../api/cityApi';
 function StationsPage() {
-  const [stations, setStations] = useState(initialStations);
+  const [stations, setStations] = useState([]);
   const [cities, setCities] = useState([]);
   const totalStations = stations.length;
   const onlineStations = stations.filter(s => s.status === 'online').length;
@@ -19,7 +18,18 @@ function StationsPage() {
            setError("Une erreur est survenue lors de la récupération des villes");
       } 
     };
+  const fetchStations = async () => {
+    try {
+      const data = await getAllStations();
+      setStations(data);
+      console.log("stations", data);
 
+    } catch (err) {
+      console.error("Impossible de récupérer les stations:", err);
+    }
+  };
+
+  fetchStations();
     fetchCities();
   }, []);
 
@@ -275,24 +285,24 @@ console.log("hhh", newStation.cityId);
                   <div className="station-info">
                     <div className="station-info-item">
                       <i className="fas fa-map-marker-alt"></i>
-                      <span>{station.city}</span>
+                   <span>{station.city ? station.city.name : "Ville inconnue"}</span>
                     </div>
                     <div className="station-info-item">
                       <i className="fas fa-network-wired"></i>
-                      <span>{station.mac}</span>
+                      <span>{station.addressMAC}</span>
                     </div>
                     <div className="station-info-item">
                       <i className="fas fa-location-arrow"></i>
-                      <span>{station.lat.toFixed(4)}, {station.lng.toFixed(4)}</span>
+                      <span>{station.latitude}, {station.longitude}</span>
                     </div>
                     <div className="station-info-item">
                       <i className="fas fa-microchip"></i>
-                      <span>{station.sensors.length} capteurs</span>
+                      <span>{station.data.length} capteurs</span>
                     </div>
                   </div>
                   <div className="station-sensors">
-                    {station.sensors.map(sensor => (
-                      <span key={sensor} className="sensor-badge">{sensor}</span>
+                    {station.data.map(data => (
+                      <span key={data} className="sensor-badge">{data}</span>
                     ))}
                   </div>
                   <div className="station-actions">

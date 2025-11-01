@@ -24,14 +24,6 @@ public class StationsService {
     }
 
     public Station add(StationDto dto) {
-        System.out.println("===== DTO reçu =====");
-        System.out.println("Name: " + dto.getName());
-        System.out.println("Latitude: " + dto.getLatitude());
-        System.out.println("Longitude: " + dto.getLongitude());
-        System.out.println("Adresse MAC: " + dto.getAdresseMAC());
-        System.out.println("CityId: " + dto.getCityId());
-        System.out.println("Data: " + dto.getData());
-
         Station station = stationMapper.toEntity(dto);
         if (dto.getCityId() != null) {
             City city = cityRepository.findById(dto.getCityId())
