@@ -11,7 +11,6 @@ public class StationMapper {
         if (station == null) return null;
 
         StationDto dto = new StationDto();
-        dto.setId(station.getId());
         dto.setName(station.getName());
         dto.setLatitude(station.getLatitude());
         dto.setLongitude(station.getLongitude());
@@ -25,7 +24,6 @@ public class StationMapper {
         if (dto == null) return null;
 
         Station station = new Station();
-        station.setId(dto.getId());
         station.setName(dto.getName());
         station.setLatitude(dto.getLatitude());
         station.setLongitude(dto.getLongitude());

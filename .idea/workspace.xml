@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f37ca6d4-02c7-411b-9dd5-5f643042b2a0" name="Changes" comment="" />
+    <list default="true" id="f37ca6d4-02c7-411b-9dd5-5f643042b2a0" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/frontend/src/api/stationsApi.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/controllers/StationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/controllers/StationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/dto/CityDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/dto/CityDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/entity/Data.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/entity/Data.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/mappers/CityMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/mappers/CityMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/service/StationsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/greentechinnovators/service/StationsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/StationsPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/StationsPage.jsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

@@ -2,12 +2,13 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8080/api/station";
 
-export const getAllStations = async () => {
-  const response = await axios.get(`${API_URL}/all`);
-  return response.data;
-};
-
+// POST: ajouter une nouvelle station
 export const addStation = async (station) => {
-  const response = await axios.post(API_URL, station);
-  return response.data;
+  try {
+    const response = await axios.post(API_URL, station);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur API POST:", error);
+    throw error;
+  }
 };

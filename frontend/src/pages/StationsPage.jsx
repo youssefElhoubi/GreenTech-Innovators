@@ -17,30 +17,29 @@ function StationsPage() {
         console.log("Villes récupérées :", data);
       } catch (err) {
            setError("Une erreur est survenue lors de la récupération des villes");
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
 
     fetchCities();
   }, []);
-  
+
 const handleAddStation = async (e) => {
   e.preventDefault();
 
   const formData = new FormData(e.target);
   const selectedSensors = [];
-  e.target.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => selectedSensors.push(cb.value));
 
-  const newStation = {
-    name: formData.get('name'),
-    latitude: parseFloat(formData.get('lat')),
-    longitude: parseFloat(formData.get('lng')),
-    adresseMAC: formData.get('mac'),
-    cityId: formData.get('city'),  
-    data: selectedSensors.map(s => ({ type: s, value: null })), 
-    id: null
-  };
+ const newStation = {
+  name: formData.get('name'),
+  latitude: parseFloat(formData.get('lat')),
+  longitude: parseFloat(formData.get('lng')),
+  adresseMAC: formData.get('mac'),
+  cityId: formData.get('city'),  
+  data:[]
+};
+
+console.log("cityId", typeof newStation.cityId);
+console.log("hhh", newStation.cityId);
 
   try {
     const savedStation = await addStation(newStation);

@@ -13,6 +13,7 @@ public class CityMapper {
         if (city == null) return null;
 
         CityDto dto = new CityDto();
+        dto.setId(city.getId());
         dto.setName(city.getName());
         if (city.getStations() != null) {
             dto.setStations(city.getStations()
@@ -27,6 +28,7 @@ public class CityMapper {
         if (dto == null) return null;
 
         City city = new City();
+        city.setId(dto.getId());
         city.setName(dto.getName());
         if (dto.getStations() != null) {
             city.setStations(dto.getStations()

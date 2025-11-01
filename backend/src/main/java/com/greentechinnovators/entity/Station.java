@@ -25,7 +25,7 @@ public class Station {
     private City city;
 
     // Reference to the data sensors installed
-    @DBRef(lazy = true)
+    @DBRef
     private List<Data> data;
 
     public Station() {}

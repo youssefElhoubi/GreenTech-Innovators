@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 public class StationDto {
 
-    private String id;
+
 
     @NotBlank(message = "Station name is required")
     @Size(min = 2, max = 100, message = "Station name must be between 2 and 100 characters")
@@ -34,7 +34,6 @@ public class StationDto {
     private List<DataDto> data;
 
     public StationDto(String id, String name, Double latitude, Double longitude, String adresseMAC, String cityId, List<DataDto> data) {
-        this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
