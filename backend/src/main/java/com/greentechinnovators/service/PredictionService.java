@@ -31,7 +31,6 @@ public class PredictionService {
     }
 
   public List<Prediction> getAllPredictions() {
-        // (عرض التوقعات من يومين في الماضي إلى 6 أيام في المستقبل)
         LocalDate startDate = LocalDate.now().minusDays(2);
         LocalDate endDate = LocalDate.now().plusDays(6);
 
@@ -47,19 +46,15 @@ public class PredictionService {
         return predictionRepository.findById(id);
     }
 
-    // --- (الإصلاح 2: منع تكرار البيانات) ---
     public PredictionDto createPrediction(PredictionDto dto) {
         City city = cityService.createCity(dto.getCity());
 
-        // البحث إذا كان التوقع موجوداً لهذه المدينة وهذا التاريخ
         Optional<Prediction> existing = predictionRepository.findByCityAndDate(city, dto.getDate());
         
         if (existing.isPresent()) {
-            // إذا كان موجوداً، قم بتحديثه
             Prediction updated = updatePrediction(existing.get().getId(), dto);
             return PredictionMapper.toDto(updated);
         } else {
-            // إذا لم يكن موجوداً، قم بإنشائه
             Prediction prediction = PredictionMapper.toEntity(dto, city);
             Prediction savedPrediction = predictionRepository.save(prediction);
             return PredictionMapper.toDto(savedPrediction);
