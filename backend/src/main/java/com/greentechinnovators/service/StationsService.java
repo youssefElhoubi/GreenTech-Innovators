@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.greentechinnovators.entity.City;
 import com.greentechinnovators.repository.CityRepository;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class StationsService {
@@ -72,5 +73,26 @@ public class StationsService {
                 .orElseThrow(() -> new RuntimeException("Station not found with id: " + id));
         stationRepository.delete(station);
     }
+    
+
+    public Station saveMacAddress(String mac) {
+        Optional<Station> existingStation = Optional.ofNullable(stationRepository.findByAddressMAC(mac));
+
+        if (existingStation.isPresent()) {
+            System.out.println(" Station already exists for MAC: " + mac);
+            return existingStation.get();
+        }
+
+        Station newStation = new Station();
+        newStation.setAddressMAC(mac);
+        newStation.setName("Station " + mac.substring(Math.max(0, mac.length() - 4)));
+        newStation.setLatitude(0.0);
+        newStation.setLongitude(0.0);
+
+        Station saved = stationRepository.save(newStation);
+        System.out.println(" Saved new station with MAC: " + mac);
+        return saved;
+    }
+
 
 }
