@@ -18,7 +18,7 @@ public class Station {
     private String name;
     private Double latitude;
     private Double longitude;
-    private String addressMAC;
+    private String adresseMAC;
 
     // Reference to city (avoid circular data embedding)
     @DBRef(lazy = true)
@@ -35,7 +35,7 @@ public class Station {
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.addressMAC = adressMAC;
+        this.adresseMAC = adressMAC;
         this.city = city;
         this.data = data;
     }

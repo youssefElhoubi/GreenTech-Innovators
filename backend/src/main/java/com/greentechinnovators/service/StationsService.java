@@ -43,11 +43,34 @@ public class StationsService {
         return stationRepository.findAll();
     }
     public Station findByAddressMAC(String addressMAC) {
-        return stationRepository.findByAddressMAC(addressMAC);
+        return stationRepository.findByAdresseMAC(addressMAC);
     }
     public Station updateStation(Station station) {
         return stationRepository.save(station);
     }
 
+    public StationDto update(String id, StationDto dto) {
+        Station existing = stationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Station not found with id: " + id));
+
+        existing.setName(dto.getName());
+        existing.setAdresseMAC(dto.getAdresseMAC());
+        existing.setLatitude(dto.getLatitude());
+        existing.setLongitude(dto.getLongitude());
+
+        if (dto.getCityId() != null) {
+            City city = cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new RuntimeException("City not found with id: " + dto.getCityId()));
+            existing.setCity(city);
+        }
+
+        Station updated = stationRepository.save(existing);
+        return stationMapper.toDto(updated);
+    }
+    public void delete(String id) {
+        Station station = stationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Station not found with id: " + id));
+        stationRepository.delete(station);
+    }
 
 }

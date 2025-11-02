@@ -37,6 +37,7 @@ public class dataController {
         stationRepository.updateStation(station);
         return ResponseEntity.ok("new data was added");
     }
+
     @GetMapping("past/week")
     public List<Data> pastWeek() {
         return dataService.getLastWeekData();
