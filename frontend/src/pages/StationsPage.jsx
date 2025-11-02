@@ -1,328 +1,437 @@
-import React,{ useEffect, useState } from 'react';
-import { addStation ,getAllStations } from '../api/stationsApi';
-import { getAllCities  } from '../api/cityApi';
+import React, { useEffect, useState } from 'react';
+import { addStation, getAllStations, updateStation ,deleteStation } from '../api/stationsApi';
+import { getAllCities } from '../api/cityApi';
+
 function StationsPage() {
   const [stations, setStations] = useState([]);
   const [cities, setCities] = useState([]);
+  const [editingStation, setEditingStation] = useState(null); 
+  const [formData, setFormData] = useState({
+    name: '',
+    lat: '',
+    lng: '',
+    mac: '',
+    cityId: '',
+    data: []
+  });
+
   const totalStations = stations.length;
   const onlineStations = stations.filter(s => s.status === 'online').length;
   const offlineStations = stations.filter(s => s.status === 'offline').length;
 
   useEffect(() => {
-    const fetchCities = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getAllCities();
-        setCities(data);
-        console.log("Villes récupérées :", data);
+        const [stationsData, citiesData] = await Promise.all([
+          getAllStations(),
+          getAllCities()
+        ]);
+
+        setStations(stationsData); 
+        setCities(citiesData);
       } catch (err) {
-           setError("Une erreur est survenue lors de la récupération des villes");
-      } 
+        console.error("Erreur lors du chargement des données:", err);
+      }
     };
-  const fetchStations = async () => {
-    try {
-      const data = await getAllStations();
-      setStations(data);
-      console.log("stations", data);
 
-    } catch (err) {
-      console.error("Impossible de récupérer les stations:", err);
-    }
-  };
-
-  fetchStations();
-    fetchCities();
+    fetchData();
   }, []);
 
-const handleAddStation = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const formData = new FormData(e.target);
-  const selectedSensors = [];
+  const newStation = {
+    name: formData.name,
+    latitude: parseFloat(formData.lat),
+    longitude: parseFloat(formData.lng),
+    adresseMAC: formData.mac,
+    cityId: formData.cityId,
+    data: formData.data
+  };
 
- const newStation = {
-  name: formData.get('name'),
-  latitude: parseFloat(formData.get('lat')),
-  longitude: parseFloat(formData.get('lng')),
-  adresseMAC: formData.get('mac'),
-  cityId: formData.get('city'),  
-  data:[]
-};
+  if (editingStation) {
+    // Optimistic update: update f state direct
+    const tempStation = {
+      ...editingStation,
+      ...newStation,
+      city: cities.find(c => c.id === newStation.cityId) || null
+    };
+    setStations(prev =>
+      prev.map(s => s.id === editingStation.id ? tempStation : s)
+    );
 
-console.log("cityId", typeof newStation.cityId);
-console.log("hhh", newStation.cityId);
+    try {
+      const updated = await updateStation(editingStation.id, newStation);
+      alert(`✅ Station "${updated.name}" mise à jour avec succès !`);
+      setEditingStation(null);
+    } catch (error) {
+      console.error(error);
+      // rollback f case erreur
+      setStations(prev =>
+        prev.map(s => s.id === editingStation.id ? editingStation : s)
+      );
+      alert("❌ Erreur lors de la mise à jour. Rollback appliqué.");
+    }
+  } else {
+    // Ajouter station f front direct
+    const tempStation = {
+      ...newStation,
+      id: Math.random().toString(36).substr(2, 9), // id temporaire
+      city: cities.find(c => c.id === newStation.cityId) || null
+    };
+    setStations(prev => [...prev, tempStation]);
 
-  try {
-    const savedStation = await addStation(newStation);
-    setStations([...stations, savedStation]);
-    e.target.reset();
-    alert(`Station "${savedStation.name}" ajoutée avec succès!`);
-  } catch (error) {
-    console.error('Erreur lors de l\'ajout de la station:', error);
-    alert('Impossible d\'ajouter la station. Veuillez réessayer.');
+    try {
+      const saved = await addStation(newStation);
+      setStations(prev =>
+        prev.map(s => s.id === tempStation.id ? { ...saved, city: tempStation.city } : s)
+      );
+      alert(`✅ Station "${saved.name}" ajoutée avec succès !`);
+    } catch (error) {
+      console.error(error);
+      setStations(prev => prev.filter(s => s.id !== tempStation.id));
+      alert("❌ Erreur lors de l'ajout. Rollback appliqué.");
+    }
   }
+
+  setFormData({ name: '', lat: '', lng: '', mac: '', cityId: '', data: [] });
 };
+
 
 
   const handleEditStation = (id) => {
     const station = stations.find(s => s.id === id);
-    if (station) {
-      alert(`Modification de la station: ${station.name}\n(Fonctionnalité à implémenter)`);
-    }
+    if (!station) return alert("Station non trouvée !");
+    setEditingStation(station);
+    setFormData({
+      name: station.name,
+      lat: station.latitude,
+      lng: station.longitude,
+      mac: station.adresseMAC,
+      cityId: station.city?.id || '',
+      data: station.data || []
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDeleteStation = (id) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette station?')) {
-      setStations(stations.filter(s => s.id !== id));
-      alert('Station supprimée avec succès!');
+const handleDeleteStation = async (id) => {
+  if (confirm('Êtes-vous sûr de vouloir supprimer cette station ?')) {
+    try {
+      await deleteStation(id); 
+      setStations(prev => prev.filter(s => s.id !== id)); 
+      alert('🗑️ Station supprimée avec succès !');
+    } catch (error) {
+      console.error("Erreur lors de la suppression :", error);
+      alert("❌ Impossible de supprimer la station. Réessayez !");
     }
-  };
+  }
+};
 
   const handleToggleStatus = (id) => {
-    setStations(stations.map(station => {
-      if (station.id === id) {
-        return {
-          ...station,
-          status: station.status === 'online' ? 'offline' : 'online'
-        };
-      }
-      return station;
-    }));
+    setStations(prev =>
+      prev.map(station => {
+        if (station.id === id) {
+          return { ...station, status: station.status === 'online' ? 'offline' : 'online' };
+        }
+        return station;
+      })
+    );
   };
 
-  return (
-    <div className="page-content active">
-      <div className="container">
-        <h1 className="page-title" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <i className="fas fa-microchip"></i>
-          Gestion des Stations ESP32
-        </h1>
 
-        {/* Stats Cards */}
-        <div className="stations-kpi-grid">
-          <div className="kpi-card" style={{ '--kpi-color': '#667eea' }}>
-            <div className="kpi-icon">
-              <i className="fas fa-microchip"></i>
-            </div>
-            <div className="kpi-content">
-              <div className="kpi-label">Total Stations</div>
-              <div className="kpi-value">{totalStations}</div>
-              <div className="kpi-trend">
-                <i className="fas fa-server"></i> Actives
-              </div>
-            </div>
+ return (
+  <div className="page-content active">
+    <div className="container">
+      <h1
+        className="page-title"
+        style={{
+          fontSize: '2rem',
+          fontWeight: 700,
+          marginBottom: '30px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px'
+        }}
+      >
+        <i className="fas fa-microchip"></i>
+        Gestion des Stations ESP32
+      </h1>
+
+      {/* Stats Cards */}
+      <div className="stations-kpi-grid">
+        <div className="kpi-card" style={{ '--kpi-color': '#667eea' }}>
+          <div className="kpi-icon">
+            <i className="fas fa-microchip"></i>
           </div>
-
-          <div className="kpi-card" style={{ '--kpi-color': '#10b981' }}>
-            <div className="kpi-icon">
-              <i className="fas fa-check-circle"></i>
-            </div>
-            <div className="kpi-content">
-              <div className="kpi-label">En Ligne</div>
-              <div className="kpi-value">{onlineStations}</div>
-              <div className="kpi-trend">
-                <i className="fas fa-arrow-up"></i> {Math.round((onlineStations / totalStations) * 100)}%
-              </div>
-            </div>
-          </div>
-
-          <div className="kpi-card" style={{ '--kpi-color': '#ef4444' }}>
-            <div className="kpi-icon">
-              <i className="fas fa-exclamation-triangle"></i>
-            </div>
-            <div className="kpi-content">
-              <div className="kpi-label">Hors Ligne</div>
-              <div className="kpi-value">{offlineStations}</div>
-              <div className="kpi-trend">
-                <i className="fas fa-power-off"></i> {Math.round((offlineStations / totalStations) * 100)}%
-              </div>
-            </div>
-          </div>
-
-          <div className="kpi-card" style={{ '--kpi-color': '#f59e0b' }}>
-            <div className="kpi-icon">
-              <i className="fas fa-city"></i>
-            </div>
-            <div className="kpi-content">
-              <div className="kpi-label">Villes Couvertes</div>
-              <div className="kpi-value">10</div>
-              <div className="kpi-trend">
-                <i className="fas fa-map-marker-alt"></i> Maroc
-              </div>
+          <div className="kpi-content">
+            <div className="kpi-label">Total Stations</div>
+            <div className="kpi-value">{totalStations}</div>
+            <div className="kpi-trend">
+              <i className="fas fa-server"></i> Actives
             </div>
           </div>
         </div>
 
-        {/* Main Grid */}
-        <div className="stations-grid">
-          {/* Add New Station Form */}
-          <div className="section-card">
-            <h2 className="section-title">
-              <i className="fas fa-plus-circle"></i>
-              Ajouter une Nouvelle Station
-            </h2>
-            <form onSubmit={handleAddStation} className="station-form">
-              <div className="form-group">
-                <label htmlFor="station-name">
-                  <i className="fas fa-tag"></i>
-                  Nom de la Station
-                </label>
-                <input type="text" id="station-name" name="name" placeholder="Ex: ESP32-CAS-001" required />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="station-city">
-                  <i className="fas fa-map-marker-alt"></i>
-                  Ville
-                </label>
-                <select id="station-city" name="city" required>
-                  <option value="">Sélectionnez une ville</option>
-                 
-                  {cities.map(city => (
-                    <option value={city.id}>{city.name}</option>
-                  ))}
-
-                </select>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="station-lat">
-                    <i className="fas fa-location-arrow"></i>
-                    Latitude
-                  </label>
-                  <input type="number" id="station-lat" name="lat" step="0.000001" placeholder="33.5731" required />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="station-lng">
-                    <i className="fas fa-location-arrow"></i>
-                    Longitude
-                  </label>
-                  <input type="number" id="station-lng" name="lng" step="0.000001" placeholder="-7.5898" required />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="station-mac">
-                  <i className="fas fa-network-wired"></i>
-                  Adresse MAC
-                </label>
-                <input
-                  type="text"
-                  id="station-mac"
-                  name="mac"
-                  placeholder="AA:BB:CC:DD:EE:FF"
-                  pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>
-                  <i className="fas fa-microchip"></i>
-                  Capteurs Installés
-                </label>
-                <div className="sensors-checkboxes">
-                  <label className="sensor-checkbox">
-                    <input type="checkbox" value="DHT22" defaultChecked />
-                    <span>🌡️ DHT22 (Temp/Humid)</span>
-                  </label>
-                  <label className="sensor-checkbox">
-                    <input type="checkbox" value="MQ-135" defaultChecked />
-                    <span>🫁 MQ-135 (CO₂)</span>
-                  </label>
-                  <label className="sensor-checkbox">
-                    <input type="checkbox" value="BMP280" defaultChecked />
-                    <span>📊 BMP280 (Pression)</span>
-                  </label>
-                  <label className="sensor-checkbox">
-                    <input type="checkbox" value="MICS-5524" defaultChecked />
-                    <span>💨 MICS-5524 (Gaz)</span>
-                  </label>
-                  <label className="sensor-checkbox">
-                    <input type="checkbox" value="ML8511" defaultChecked />
-                    <span>☀️ ML8511 (UV)</span>
-                  </label>
-                  <label className="sensor-checkbox">
-                    <input type="checkbox" value="BH1750" defaultChecked />
-                    <span>💡 BH1750 (Lumière)</span>
-                  </label>
-                </div>
-              </div>
-
-              <button type="submit" className="btn-add-station">
-                <i className="fas fa-plus-circle"></i>
-                Ajouter la Station
-              </button>
-            </form>
+        <div className="kpi-card" style={{ '--kpi-color': '#10b981' }}>
+          <div className="kpi-icon">
+            <i className="fas fa-check-circle"></i>
           </div>
+          <div className="kpi-content">
+            <div className="kpi-label">En Ligne</div>
+            <div className="kpi-value">{onlineStations}</div>
+            <div className="kpi-trend">
+              <i className="fas fa-arrow-up"></i>{' '}
+              {totalStations ? Math.round((onlineStations / totalStations) * 100) : 0}%
+            </div>
+          </div>
+        </div>
 
-          {/* Stations List */}
-          <div className="section-card">
-            <h2 className="section-title">
-              <i className="fas fa-list"></i>
-              Liste des Stations ({totalStations})
-            </h2>
-            <div className="stations-list">
-              {stations.map(station => (
-                <div key={station.id} className="station-item">
-                  <div className="station-header">
-                    <div className="station-name">{station.name}</div>
-                    <div className="station-status-wrapper">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={station.status === 'online'}
-                          onChange={() => handleToggleStatus(station.id)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                      <span className={`station-status-text ${station.status}`}>
-                        {station.status === 'online' ? 'En ligne' : 'Hors ligne'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="station-info">
-                    <div className="station-info-item">
-                      <i className="fas fa-map-marker-alt"></i>
-                   <span>{station.city ? station.city.name : "Ville inconnue"}</span>
-                    </div>
-                    <div className="station-info-item">
-                      <i className="fas fa-network-wired"></i>
-                      <span>{station.addressMAC}</span>
-                    </div>
-                    <div className="station-info-item">
-                      <i className="fas fa-location-arrow"></i>
-                      <span>{station.latitude}, {station.longitude}</span>
-                    </div>
-                    <div className="station-info-item">
-                      <i className="fas fa-microchip"></i>
-                      <span>{station.data.length} capteurs</span>
-                    </div>
-                  </div>
-                  <div className="station-sensors">
-                    {station.data.map(data => (
-                      <span key={data} className="sensor-badge">{data}</span>
-                    ))}
-                  </div>
-                  <div className="station-actions">
-                    <button className="btn-station-action btn-edit" onClick={() => handleEditStation(station.id)}>
-                      <i className="fas fa-edit"></i>
-                      Modifier
-                    </button>
-                    <button className="btn-station-action btn-delete" onClick={() => handleDeleteStation(station.id)}>
-                      <i className="fas fa-trash"></i>
-                      Supprimer
-                    </button>
-                  </div>
-                </div>
-              ))}
+        <div className="kpi-card" style={{ '--kpi-color': '#ef4444' }}>
+          <div className="kpi-icon">
+            <i className="fas fa-exclamation-triangle"></i>
+          </div>
+          <div className="kpi-content">
+            <div className="kpi-label">Hors Ligne</div>
+            <div className="kpi-value">{offlineStations}</div>
+            <div className="kpi-trend">
+              <i className="fas fa-power-off"></i>{' '}
+              {totalStations ? Math.round((offlineStations / totalStations) * 100) : 0}%
+            </div>
+          </div>
+        </div>
+
+        <div className="kpi-card" style={{ '--kpi-color': '#f59e0b' }}>
+          <div className="kpi-icon">
+            <i className="fas fa-city"></i>
+          </div>
+          <div className="kpi-content">
+            <div className="kpi-label">Villes Couvertes</div>
+            <div className="kpi-value">{cities.length}</div>
+            <div className="kpi-trend">
+              <i className="fas fa-map-marker-alt"></i> Maroc
             </div>
           </div>
         </div>
       </div>
+
+      {/* Main Grid */}
+      <div className="stations-grid">
+        {/* Add/Edit Station Form */}
+<div className="section-card">
+  <h2 className="section-title">
+    <i className="fas fa-plus-circle"></i>{' '}
+    {editingStation ? 'Modifier la Station' : 'Ajouter une Nouvelle Station'}
+  </h2>
+  <form onSubmit={handleSubmit} className="station-form">
+    {/* Station Name */}
+    <div className="form-group">
+      <label htmlFor="station-name">
+        <i className="fas fa-tag"></i> Nom de la Station
+      </label>
+      <input
+        type="text"
+        id="station-name"
+        name="name"
+        value={formData.name}
+        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+        placeholder="Ex: ESP32-CAS-001"
+        required
+      />
     </div>
-  );
+
+    {/* City */}
+    <div className="form-group">
+      <label htmlFor="station-city">
+        <i className="fas fa-map-marker-alt"></i> Ville
+      </label>
+      <select
+        id="station-city"
+        name="city"
+        value={formData.cityId}
+        onChange={(e) => setFormData({ ...formData, cityId: e.target.value })}
+        required
+      >
+        <option value="">Sélectionnez une ville</option>
+        {cities.map((city) => (
+          <option key={city.id} value={city.id}>
+            {city.name}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* Latitude & Longitude */}
+    <div className="form-row">
+      <div className="form-group">
+        <label htmlFor="station-lat">
+          <i className="fas fa-location-arrow"></i> Latitude
+        </label>
+        <input
+          type="number"
+          id="station-lat"
+          name="lat"
+          step="0.000001"
+          value={formData.lat}
+          onChange={(e) => setFormData({ ...formData, lat: e.target.value })}
+          placeholder="33.5731"
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="station-lng">
+          <i className="fas fa-location-arrow"></i> Longitude
+        </label>
+        <input
+          type="number"
+          id="station-lng"
+          name="lng"
+          step="0.000001"
+          value={formData.lng}
+          onChange={(e) => setFormData({ ...formData, lng: e.target.value })}
+          placeholder="-7.5898"
+          required
+        />
+      </div>
+    </div>
+
+    {/* MAC Address */}
+    <div className="form-group">
+      <label htmlFor="station-mac">
+        <i className="fas fa-network-wired"></i> Adresse MAC
+      </label>
+      <input
+        type="text"
+        id="station-mac"
+        name="mac"
+        value={formData.mac}
+        onChange={(e) => setFormData({ ...formData, mac: e.target.value })}
+        placeholder="AA:BB:CC:DD:EE:FF"
+        pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"
+        required
+      />
+    </div>
+
+    {/* Sensors */}
+    <div className="form-group">
+      <label>
+        <i className="fas fa-microchip"></i> Capteurs Installés
+      </label>
+      <div className="sensors-checkboxes">
+        {['DHT22', 'MQ-135', 'BMP280', 'MICS-5524', 'ML8511', 'BH1750'].map((sensor) => (
+          <label key={sensor} className="sensor-checkbox">
+            <input
+              type="checkbox"
+              value={sensor}
+              checked={formData.data.includes(sensor)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFormData({ ...formData, data: [...formData.data, sensor] });
+                } else {
+                  setFormData({ ...formData, data: formData.data.filter(s => s !== sensor) });
+                }
+              }}
+            />
+            <span>
+              {sensor === 'DHT22' && '🌡️ DHT22 (Temp/Humid)'}
+              {sensor === 'MQ-135' && '🫁 MQ-135 (CO₂)'}
+              {sensor === 'BMP280' && '📊 BMP280 (Pression)'}
+              {sensor === 'MICS-5524' && '💨 MICS-5524 (Gaz)'}
+              {sensor === 'ML8511' && '☀️ ML8511 (UV)'}
+              {sensor === 'BH1750' && '💡 BH1750 (Lumière)'}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    {/* Submit Button */}
+    <button type="submit" className="btn-add-station">
+      <i className="fas fa-plus-circle"></i>{' '}
+      {editingStation ? 'Mettre à jour la Station' : 'Ajouter la Station'}
+    </button>
+  </form>
+</div>
+
+
+        {/* Stations List */}
+        <div className="section-card">
+          <h2 className="section-title">
+            <i className="fas fa-list"></i> Liste des Stations ({totalStations})
+          </h2>
+          <div className="stations-list">
+            {stations.map((station) => (
+              <div key={station.id} className="station-item">
+                <div className="station-header">
+                  <div className="station-name">{station.name}</div>
+                  <div className="station-status-wrapper">
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={station.status === 'online'}
+                        onChange={() => handleToggleStatus(station.id)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                    <span className={`station-status-text ${station.status}`}>
+                      {station.status === 'online' ? 'En ligne' : 'Hors ligne'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="station-info">
+                  <div className="station-info-item">
+                    <i className="fas fa-map-marker-alt"></i>{' '}
+                    <span>{station.city?.name || 'Ville inconnue'}</span>
+                  </div>
+                  <div className="station-info-item">
+                    <i className="fas fa-network-wired"></i>{' '}
+                    <span>{station.adresseMAC}</span>
+                  </div>
+                  <div className="station-info-item">
+                    <i className="fas fa-location-arrow"></i>{' '}
+                    <span>
+                      {station.latitude}, {station.longitude}
+                    </span>
+                  </div>
+                  <div className="station-info-item">
+                    <i className="fas fa-microchip"></i>{' '}
+                    <span>{station.data.length} capteurs</span>
+                  </div>
+                </div>
+
+                <div className="station-sensors">
+                  {station.data.map((data) => (
+                    <span key={data} className="sensor-badge">
+                      {data}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="station-actions">
+                          <button
+          className="btn-station-action btn-edit"
+          onClick={() => handleEditStation(station.id)}
+        >
+          <i className="fas fa-edit"></i> Modifier
+        </button>
+
+                  <button
+                    className="btn-station-action btn-delete"
+                    onClick={() => handleDeleteStation(station.id)}
+                  >
+                    <i className="fas fa-trash"></i> Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 }
 
 export default StationsPage;

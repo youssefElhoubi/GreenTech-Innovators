@@ -23,3 +23,26 @@ export const getAllStations = async () => {
     throw error;
   }
 };
+
+
+
+export const updateStation = async (id, updatedData) => {
+  try {
+    const response = await axios.put(`${API_URL}/${id}`, updatedData);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la station:", error);
+    throw error;
+  }
+};
+
+
+// DELETE: supprimer une station
+export const deleteStation = async (id) => {
+  try {
+    const response = await axios.delete(`${API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la station:", error);
+    throw error;
+  }}
