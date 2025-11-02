@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 @RestController
 @RequestMapping("/api/station")
 public class StationController {
@@ -29,5 +31,17 @@ public class StationController {
     public List<Station> all() {
         return stationsService.all();
     }
+
+
+    @PostMapping("/esp32/saveMac")
+    public ResponseEntity<String> saveMac(@RequestBody Map<String, String> body) {
+        String mac = body.get("mac");
+        System.out.println(" New ESP32 connecting with MAC: " + mac);
+
+        Station station = stationsService.saveMacAddress(mac);
+
+        return ResponseEntity.ok("MAC processed: " + station.getAddressMAC());
+    }
+
 }
 
