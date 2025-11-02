@@ -1,265 +1,294 @@
-import React from 'react';
-function ReportsPage() {
-  const downloadReport = (reportId, format) => {
-    alert(`📥 Téléchargement du rapport ${reportId} au format ${format.toUpperCase()}...\n\nCette fonctionnalité sera connectée à votre backend pour générer les vrais rapports.`);
-  };
 
-  return (
-    <div className="page-content active">
-      {/* Next Report Banner */}
-      <div className="section-card ai-section">
-        <h2 className="section-title">
-          <i className="fas fa-clock"></i>
-          Prochain Rapport
-        </h2>
+  import React,{ useEffect, useState } from "react"
 
-        <div className="next-report-banner">
-          <div className="next-report-icon">🕐</div>
-          <div className="next-report-text">
-            <div className="next-report-title">Prochain rapport hebdomadaire</div>
-            <div className="next-report-time">Lundi 4 Novembre 2025 à 09:00</div>
+  function ReportsPage() {
+    const [reports, setReports] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+  const [stats, setStats] = useState(null) 
+
+  useEffect(() => {
+  const fetchReports = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/weekly-reports/data")
+      if (!response.ok) throw new Error("Erreur lors du chargement des rapports")
+      const data = await response.json() 
+
+      // Map cities to reports
+      const formatted = data.cities.map((city, index) => ({
+        id: index + 1,
+        date: data.date,
+        city: city.name,
+        title: `Rapport ${data.date}`,
+        aqiMoyen: city.aqiMoyen,
+        evolution: city.evolution,
+        alertesRouges: city.alertesRouges,
+        avertissementsJaunes: city.avertissementsJaunes,
+        tempMoyen: city.tempMoyen,
+        humidityMoyen: city.humidityMoyen,
+        stationsActives: city.stationsActives,
+        alertColor: city.alertColor,
+      }))
+      setReports(formatted)
+      setLoading(false)
+
+      // Global statistics
+      const totalReports = formatted.length
+      const totalDownloads = formatted.reduce((sum, r) => sum + r.stationsActives, 0)
+
+      const reportDates = formatted.map(r => new Date(r.date))
+      const latestDate = new Date(Math.max(...reportDates))
+      const today = new Date()
+      const diffTime = Math.abs(today - latestDate)
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+      const lastReportTime = `${diffDays}j`
+
+      const avgAqi = formatted.reduce((sum, r) => sum + r.aqiMoyen, 0) / totalReports
+      const aqiTrend = (avgAqi - 100).toFixed(1) + "%"
+
+      setStats({
+        generatedReports: totalReports,
+        downloads: totalDownloads,
+        downloadsTrend: "+12% ce mois", // or calculate dynamically if backend provides
+        lastReportTime,
+        lastReportDate: latestDate.toLocaleDateString("fr-FR"),
+        aqiTrend,
+        aqiTrendLabel: aqiTrend.startsWith("-") ? "Amélioration" : "En hausse",
+      })
+    } catch (err) {
+      console.error(err)
+      setError("❌ Impossible de charger les rapports.")
+      setLoading(false)
+    }
+  }
+
+  fetchReports()
+}, [])
+
+
+    const downloadReport = async (reportId, format) => {
+      if (format === "csv") {
+        const report = reports.find((r) => r.id === reportId)
+        if (!report) return alert("Rapport non trouvé.")
+
+        const headers = [
+          "Date",
+          "City",
+          "AQIMoyen",
+          "Evolution",
+          "AlertesRouges",
+          "AvertissementsJaunes",
+          "TempMoyen",
+          "HumidityMoyen",
+          "StationsActives",
+          "AlertColor",
+        ]
+
+        const row = [
+          report.date,
+          report.city,
+          report.aqiMoyen,
+          report.evolution,
+          report.alertesRouges,
+          report.avertissementsJaunes,
+          report.tempMoyen,
+          report.humidityMoyen,
+          report.stationsActives,
+          report.alertColor,
+        ]
+
+        const csvContent = [headers.join(","), row.join(",")].join("\n")
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `${report.title}.csv`
+        link.click()
+        URL.revokeObjectURL(url)
+      } else {
+        try {
+          const response = await fetch(`http://localhost:8080/api/weekly-reports/${format}?reportId=${reportId}`)
+          if (!response.ok) throw new Error("Erreur téléchargement PDF")
+          const blob = await response.blob()
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement("a")
+          link.href = url
+          const report = reports.find((r) => r.id === reportId)
+          link.download = `${report?.title || reportId}.${format}`
+          link.click()
+          window.URL.revokeObjectURL(url)
+        } catch (err) {
+          console.error(err)
+          alert("❌ Impossible de télécharger le rapport.")
+        }
+      }
+    }
+
+
+    if (error) {
+      return (
+        <div className="page-content active">
+          <p>{error}</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="page-content active">
+       {/* Next Report Banner */}
+<div className="section-card ai-section">
+  <h2 className="section-title">
+    <i className="fas fa-clock"></i>
+    Prochain Rapport
+  </h2>
+
+  <div className="next-report-banner">
+    <div className="next-report-icon">🕐</div>
+    <div className="next-report-text">
+      <div className="next-report-title">Prochain rapport hebdomadaire</div>
+      <div className="next-report-time">
+         {stats ? 
+          new Date(new Date(stats.lastReportDate).getTime() + 7 * 24 * 60 * 60 * 1000)
+            .toLocaleDateString("fr-FR", { 
+              weekday: "long", 
+              day: "numeric", 
+              month: "long", 
+              year: "numeric" 
+            }) + " à 09:00"
+          : "Calcul en cours..."
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        {/* Reports Timeline */}
+        <div className="section-card ai-section">
+          <h2 className="section-title">
+            <i className="fas fa-file-lines"></i>
+            Rapports Disponibles
+          </h2>
+
+          <div className="reports-timeline">
+            {loading ? (
+              <p>Chargement des rapports...</p>
+            ) : reports.length > 0 ? (
+              reports.map((report) => (
+                <div key={report.id} className="report-item">
+                  <div className="report-icon">
+                    <i className="fas fa-file-pdf"></i>
+                  </div>
+                  <div className="report-content">
+                    <div className="report-header">
+                      <div>
+                        <div className="report-title">{report.city}</div>
+                        <div className="report-date">📅 {report.date}</div>
+                      </div>
+                      <div className="report-actions">
+                        <button className="report-btn btn-pdf" onClick={() => downloadReport(report.id, "pdf")}>
+                          <i className="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button className="report-btn btn-csv" onClick={() => downloadReport(report.id, "csv")}>
+                          <i className="fas fa-file-csv"></i> CSV
+                        </button>
+                      </div>
+                    </div>
+                    <div className="report-summary">
+                      <div className="report-metric">
+                        <div className="report-metric-label">AQI Moyen</div>
+                        <div className="report-metric-value" style={{ color: report.alertColor || "#f59e0b" }}>
+                          {report.aqiMoyen}
+                        </div>
+                      </div>
+                      <div className="report-metric">
+                        <div className="report-metric-label">Évolution</div>
+                        <div
+                          className="report-metric-value"
+                          style={{ color: report.evolution?.startsWith("-") ? "#10b981" : "#ef4444" }}
+                        >
+                          {report.evolution}
+                        </div>
+                      </div>
+                      <div className="report-metric">
+                        <div className="report-metric-label">🔴 Alertes</div>
+                        <div className="report-metric-value">{report.alertesRouges}</div>
+                      </div>
+                      <div className="report-metric">
+                        <div className="report-metric-label">🟡 Avertissements</div>
+                        <div className="report-metric-value">{report.avertissementsJaunes}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>Aucun rapport disponible.</p>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Reports Timeline */}
-      <div className="section-card ai-section">
-        <h2 className="section-title">
-          <i className="fas fa-file-lines"></i>
-          Rapports Disponibles
-        </h2>
-
-        <div className="reports-timeline">
-          {/* Report 1 */}
-          <div className="report-item">
-            <div className="report-icon">
-              <i className="fas fa-file-pdf"></i>
-            </div>
-            <div className="report-content">
-              <div className="report-header">
-                <div>
-                  <div className="report-title">Rapport Hebdomadaire #42</div>
-                  <div className="report-date">📅 21 - 27 Octobre 2025</div>
-                </div>
-                <div className="report-actions">
-                  <button className="report-btn btn-pdf" onClick={() => downloadReport('week42', 'pdf')}>
-                    <i className="fas fa-file-pdf"></i> PDF
-                  </button>
-                  <button className="report-btn btn-csv" onClick={() => downloadReport('week42', 'csv')}>
-                    <i className="fas fa-file-csv"></i> CSV
-                  </button>
-                </div>
-              </div>
-              <div className="report-summary">
-                <div className="report-metric">
-                  <div className="report-metric-label">AQI Moyen</div>
-                  <div className="report-metric-value" style={{ color: '#f59e0b' }}>82</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">Évolution</div>
-                  <div className="report-metric-value" style={{ color: '#ef4444' }}>+5%</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🔴 Alertes</div>
-                  <div className="report-metric-value">3</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🟡 Avertissements</div>
-                  <div className="report-metric-value">12</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Report 2 */}
-          <div className="report-item">
-            <div className="report-icon">
-              <i className="fas fa-file-pdf"></i>
-            </div>
-            <div className="report-content">
-              <div className="report-header">
-                <div>
-                  <div className="report-title">Rapport Hebdomadaire #41</div>
-                  <div className="report-date">📅 14 - 20 Octobre 2025</div>
-                </div>
-                <div className="report-actions">
-                  <button className="report-btn btn-pdf" onClick={() => downloadReport('week41', 'pdf')}>
-                    <i className="fas fa-file-pdf"></i> PDF
-                  </button>
-                  <button className="report-btn btn-csv" onClick={() => downloadReport('week41', 'csv')}>
-                    <i className="fas fa-file-csv"></i> CSV
-                  </button>
-                </div>
-              </div>
-              <div className="report-summary">
-                <div className="report-metric">
-                  <div className="report-metric-label">AQI Moyen</div>
-                  <div className="report-metric-value" style={{ color: '#fbbf24' }}>78</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">Évolution</div>
-                  <div className="report-metric-value" style={{ color: '#10b981' }}>-3%</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🔴 Alertes</div>
-                  <div className="report-metric-value">2</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🟡 Avertissements</div>
-                  <div className="report-metric-value">8</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Report 3 */}
-          <div className="report-item">
-            <div className="report-icon">
-              <i className="fas fa-file-pdf"></i>
-            </div>
-            <div className="report-content">
-              <div className="report-header">
-                <div>
-                  <div className="report-title">Rapport Mensuel - Septembre 2025</div>
-                  <div className="report-date">📅 1 - 30 Septembre 2025</div>
-                </div>
-                <div className="report-actions">
-                  <button className="report-btn btn-pdf" onClick={() => downloadReport('sept2025', 'pdf')}>
-                    <i className="fas fa-file-pdf"></i> PDF
-                  </button>
-                  <button className="report-btn btn-csv" onClick={() => downloadReport('sept2025', 'csv')}>
-                    <i className="fas fa-file-csv"></i> CSV
-                  </button>
-                </div>
-              </div>
-              <div className="report-summary">
-                <div className="report-metric">
-                  <div className="report-metric-label">AQI Moyen</div>
-                  <div className="report-metric-value" style={{ color: '#10b981' }}>68</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">Évolution</div>
-                  <div className="report-metric-value" style={{ color: '#10b981' }}>-8%</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🔴 Alertes</div>
-                  <div className="report-metric-value">5</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🟡 Avertissements</div>
-                  <div className="report-metric-value">18</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Report 4 */}
-          <div className="report-item">
-            <div className="report-icon">
-              <i className="fas fa-file-pdf"></i>
-            </div>
-            <div className="report-content">
-              <div className="report-header">
-                <div>
-                  <div className="report-title">Rapport Mensuel - Août 2025</div>
-                  <div className="report-date">📅 1 - 31 Août 2025</div>
-                </div>
-                <div className="report-actions">
-                  <button className="report-btn btn-pdf" onClick={() => downloadReport('aug2025', 'pdf')}>
-                    <i className="fas fa-file-pdf"></i> PDF
-                  </button>
-                  <button className="report-btn btn-csv" onClick={() => downloadReport('aug2025', 'csv')}>
-                    <i className="fas fa-file-csv"></i> CSV
-                  </button>
-                </div>
-              </div>
-              <div className="report-summary">
-                <div className="report-metric">
-                  <div className="report-metric-label">AQI Moyen</div>
-                  <div className="report-metric-value" style={{ color: '#10b981' }}>65</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">Évolution</div>
-                  <div className="report-metric-value" style={{ color: '#10b981' }}>-4%</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🔴 Alertes</div>
-                  <div className="report-metric-value">4</div>
-                </div>
-                <div className="report-metric">
-                  <div className="report-metric-label">🟡 Avertissements</div>
-                  <div className="report-metric-value">15</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Statistics Overview */}
+         {/* Statistics Overview */}
       <div className="section-card ai-section">
         <h2 className="section-title">
           <i className="fas fa-chart-bar"></i>
           Statistiques Globales
         </h2>
 
-        <div className="kpi-grid">
-          <div className="kpi-card" style={{ '--kpi-color': '#3b82f6' }}>
+        <div className="kpi-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="kpi-card" style={{ "--kpi-color": "#3b82f6" }}>
             <div className="kpi-icon">
               <i className="fas fa-file-alt"></i>
             </div>
             <div className="kpi-content">
               <div className="kpi-label">Rapports Générés</div>
-              <div className="kpi-value">48</div>
+              <div className="kpi-value">{stats?.generatedReports ?? "-"}</div>
               <div className="kpi-trend">
                 <i className="fas fa-calendar"></i> Cette année
               </div>
             </div>
           </div>
 
-          <div className="kpi-card" style={{ '--kpi-color': '#10b981' }}>
+          <div className="kpi-card" style={{ "--kpi-color": "#10b981" }}>
             <div className="kpi-icon">
               <i className="fas fa-download"></i>
             </div>
             <div className="kpi-content">
               <div className="kpi-label">Téléchargements</div>
-              <div className="kpi-value">324</div>
+              <div className="kpi-value">{stats?.downloads ?? "-"}</div>
               <div className="kpi-trend">
-                <i className="fas fa-arrow-up"></i> +12% ce mois
+                <i className="fas fa-arrow-up"></i> {stats?.downloadsTrend ?? "-"}
               </div>
             </div>
           </div>
 
-          <div className="kpi-card" style={{ '--kpi-color': '#f59e0b' }}>
+          <div className="kpi-card" style={{ "--kpi-color": "#f59e0b" }}>
             <div className="kpi-icon">
               <i className="fas fa-clock-rotate-left"></i>
             </div>
             <div className="kpi-content">
               <div className="kpi-label">Dernier Rapport</div>
-              <div className="kpi-value">2j</div>
+              <div className="kpi-value">{stats?.lastReportTime ?? "-"}</div>
               <div className="kpi-trend">
-                <i className="fas fa-calendar-day"></i> 27 Oct 2025
+                <i className="fas fa-calendar-day"></i> {stats?.lastReportDate ?? "-"}
               </div>
             </div>
           </div>
 
-          <div className="kpi-card" style={{ '--kpi-color': '#8b5cf6' }}>
+          <div className="kpi-card" style={{ "--kpi-color": "#8b5cf6" }}>
             <div className="kpi-icon">
               <i className="fas fa-chart-line"></i>
             </div>
             <div className="kpi-content">
               <div className="kpi-label">Tendance AQI</div>
-              <div className="kpi-value">-5.2%</div>
-              <div className="kpi-trend">
-                <i className="fas fa-arrow-down"></i> Amélioration
-              </div>
+              <div className="kpi-value">{stats?.aqiTrend ?? "-"}</div>
+              <div className="kpi-trend">{stats?.aqiTrendLabel ?? "Amélioration"}</div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+      </div>
+    )
+  }
 
-export default ReportsPage;
-
+  export default ReportsPage

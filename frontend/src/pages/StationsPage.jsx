@@ -19,23 +19,45 @@ function StationsPage() {
   const onlineStations = stations.filter(s => s.status === 'online').length;
   const offlineStations = stations.filter(s => s.status === 'offline').length;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [stationsData, citiesData] = await Promise.all([
-          getAllStations(),
-          getAllCities()
-        ]);
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const [stationsData, citiesData] = await Promise.all([
+        getAllStations(),
+        getAllCities()
+      ]);
 
-        setStations(stationsData); 
-        setCities(citiesData);
-      } catch (err) {
-        console.error("Erreur lors du chargement des données:", err);
-      }
-    };
+      // Transform stations: extract sensors as strings
+     const stationsWithSensors = stationsData.map(station => {
+  const sensors = station.data?.map(d => {
+    const list = [];
+  if (d.temp !== undefined) list.push(`🌡️ ${d.temp}°C`);
+if (d.humidity !== undefined) list.push(`💧 ${d.humidity}%`);
+if (d.co2 !== undefined) list.push(`🫁 ${d.co2} ppm`);
+if (d.gas !== undefined) list.push(`💨 ${d.gas}`);
+if (d.uv !== undefined) list.push(`☀️ ${d.uv}`);
+if (d.lumiere !== undefined) list.push(`💡 ${d.lumiere}`);
 
-    fetchData();
-  }, []);
+    return list;
+  }).flat();
+console.log("Sensors extracted for station", station.name, ":", sensors);
+        return {
+          ...station,
+          sensors // <-- array dyal strings ready to render
+        };
+      });
+
+      setStations(stationsWithSensors);
+      setCities(citiesData);
+
+    } catch (err) {
+      console.error("Erreur lors du chargement des données:", err);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -400,13 +422,13 @@ const handleDeleteStation = async (id) => {
                   </div>
                 </div>
 
-                <div className="station-sensors">
-                  {station.data.map((data) => (
-                    <span key={data} className="sensor-badge">
-                      {data}
-                    </span>
-                  ))}
-                </div>
+               <div className="station-sensors">
+  {station.sensors.map((value, i) => (
+  <span key={i} className="sensor-badge">{value}</span>
+))}
+
+</div>
+
 
                 <div className="station-actions">
                           <button
