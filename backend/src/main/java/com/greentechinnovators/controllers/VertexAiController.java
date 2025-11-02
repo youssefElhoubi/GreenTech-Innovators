@@ -75,7 +75,7 @@ public class VertexAiController {
                         "Each object must follow this format: " +
                         "**confidence should be a Integer between 0 and 100.** " +
                         "{ \"day\": \"string\", \"date\": \"string\", \"city\": \"string\", \"predictionTitle\": \"string\", \"eventType\": \"string\", \"confidence\": \"string\" }. " +
-                        "'eventType' must be one of: 'normal', 'warning', 'critical'. " +
+                        "'eventType' must be one of: 'normal', 'warning', 'DANGER'. " +
                         "**Crucial: The dates in your response must be accurate and sequential, starting from the provided current date.**";
 
                 String userPrompt = String.format(
@@ -156,7 +156,7 @@ public class VertexAiController {
                     "Each object must follow this format: " +
                     "**confidence should be a Integer between 0 and 100.** " +
                     "{ \"day\": \"string\", \"date\": \"string\", \"city\": \"string\", \"predictionTitle\": \"string\", \"eventType\": \"string\", \"confidence\": \"string\" }. " +
-                    "'eventType' must be one of: 'normal', 'warning', 'critical'. " +
+                    "'eventType' must be one of: 'normal', 'warning', 'DANGER'. " +
                     "**Crucial: The dates in your response must be accurate and sequential, starting from the provided current date.**";
 
             String userPrompt = String.format(

@@ -5,27 +5,65 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <HTTPClient.h>
 
+// ======================= CONFIG =======================
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-const char* ssid = "YouCode";
-const char* password = "Ycode@2021";
+// Wi-Fi settings
+const char* ssid = "Cafe Ryad gzoula ☕️☕️";
+const char* password = "90807060";
 
-const char* ws_server = "192.168.8.62";
+// Server settings
+const char* ws_server = "192.168.1.48";
 const int ws_port = 8080;
 const char* ws_path = "/ws-native";
 
 WebSocketsClient webSocket;
 bool isStompConnected = false;
 
-// NTP Configuration
+// NTP settings
 const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 3600;
 const int daylightOffset_sec = 0;
 
+// ======================= FUNCTIONS =======================
+
+// Send MAC address to Spring Boot REST endpoint before WS
+void sendMacToServer() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    String mac = WiFi.macAddress();
+    String serverUrl = "http://" + String(ws_server) + ":" + String(ws_port) + "/esp32/saveMac";
+
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json");
+
+    StaticJsonDocument<100> json;
+    json["mac"] = mac;
+    String requestBody;
+    serializeJson(json, requestBody);
+
+    int httpResponseCode = http.POST(requestBody);
+
+    if (httpResponseCode > 0) {
+      Serial.printf(" MAC sent! Response: %d\n", httpResponseCode);
+      String response = http.getString();
+      Serial.println(response);
+    } else {
+      Serial.printf(" Error sending MAC: %d\n", httpResponseCode);
+    }
+
+    http.end();
+  } else {
+    Serial.println(" WiFi not connected, cannot send MAC.");
+  }
+}
+
+// Initialize time via NTP
 void initTime() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   Serial.println("Waiting for NTP time...");
@@ -38,6 +76,7 @@ void initTime() {
   Serial.println("\nTime initialized!");
 }
 
+// Format time as ISO8601
 String getISO8601Time() {
   time_t now_sec = time(nullptr);
   struct tm timeinfo;
@@ -53,16 +92,17 @@ String getISO8601Time() {
   return String(buffer);
 }
 
+// Send STOMP frame
 void sendStompFrame(String frame) {
   frame += '\0';
   webSocket.sendTXT(frame);
 }
 
-// ---------------- WebSocket Events ----------------
+// WebSocket event handler
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.println("WebSocket Disconnected.");
+      Serial.println(" WebSocket Disconnected.");
       isStompConnected = false;
       break;
 
@@ -78,11 +118,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
 
     case WStype_TEXT:
-      Serial.print("Received: ");
+      Serial.print(" Received: ");
       Serial.println((char*)payload);
 
       if (String((char*)payload).startsWith("CONNECTED")) {
-        Serial.println("STOMP Connection Successful!");
+        Serial.println(" STOMP Connection Successful!");
         isStompConnected = true;
 
         String subscribeFrame = "SUBSCRIBE\n";
@@ -94,7 +134,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
 
     case WStype_ERROR:
-      Serial.println("WebSocket Error!");
+      Serial.println(" WebSocket Error!");
       isStompConnected = false;
       break;
 
@@ -103,38 +143,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   }
 }
 
-// ---------------- Setup ----------------
-void setup() {
-  Serial.begin(115200);
-  delay(1000);
-
-  // OLED Initialization
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println("SSD1306 allocation failed");
-    for(;;);
-  }
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println();
-  Serial.print("Connected! IP: ");
-  Serial.println(WiFi.localIP());
-
-  initTime();
-
-  webSocket.begin(ws_server, ws_port, ws_path);
-  webSocket.onEvent(webSocketEvent);
-  webSocket.setReconnectInterval(5000);
-}
-
-// ---------------- Display Info ----------------
+// Display status on OLED
 void displayStatus() {
   display.clearDisplay();
   display.setCursor(0,0);
@@ -150,7 +159,42 @@ void displayStatus() {
   display.display();
 }
 
-// ---------------- Loop ----------------
+// ======================= SETUP =======================
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  // OLED init
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("SSD1306 allocation failed");
+    for(;;);
+  }
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  
+  // Connect Wi-Fi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+  Serial.print("Connected! IP: ");
+  Serial.println(WiFi.localIP());
+
+  //  Send MAC before WebSocket
+  sendMacToServer();
+
+  // Init time + WebSocket
+  initTime();
+  webSocket.begin(ws_server, ws_port, ws_path);
+  webSocket.onEvent(webSocketEvent);
+  webSocket.setReconnectInterval(5000);
+}
+
+// ======================= LOOP =======================
 void loop() {
   webSocket.loop();
   displayStatus();
@@ -160,7 +204,7 @@ void loop() {
     lastSend = millis();
 
     StaticJsonDocument<400> json;
-    
+    json["mac"] = WiFi.macAddress();
     json["temp"] = random(20, 30);
     json["humidity"] = random(30, 80);
     json["pression"] = random(1000, 1020);
@@ -169,8 +213,6 @@ void loop() {
     json["uv"] = random(1, 11);
     json["lumiere"] = random(5000, 12000);
     json["timestamp"] = getISO8601Time();
-    json["mac"] = WiFi.macAddress();
-
     String payloadJson;
     serializeJson(json, payloadJson);
 
@@ -182,6 +224,6 @@ void loop() {
     sendFrame += payloadJson;
 
     sendStompFrame(sendFrame);
-    Serial.println("Sent JSON data with real timestamp to Spring Boot!");
+    Serial.println(" Sent JSON data with timestamp to Spring Boot!");
   }
 }
