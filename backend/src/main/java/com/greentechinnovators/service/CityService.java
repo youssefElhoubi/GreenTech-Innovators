@@ -102,7 +102,7 @@ public class CityService {
                             dto.setCityId(station.getCity().getId());
                             dto.setLatitude(station.getLatitude());
                             dto.setLongitude(station.getLongitude());
-                            dto.setAdresseMAC(station.getAddressMAC());
+                            dto.setAdresseMAC(station.getAdresseMAC());
                             dto.setData(station.getData().stream().map(DataMapper::toDto).collect(Collectors.toList()));
                             return dto;
                         }).collect(Collectors.toList()))

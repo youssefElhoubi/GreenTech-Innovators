@@ -29,7 +29,7 @@ public class dataController {
         return dataService.all();
     }
 
-    @PostMapping("{address}")
+    @PostMapping("{addressMAC}")
     public ResponseEntity<?> add(@Valid @RequestBody DataDto data, @PathVariable String addressMAC) {
         Data edata = dataService.add(data);
         Station station = stationRepository.findByAddressMAC(addressMAC);
@@ -37,6 +37,7 @@ public class dataController {
         stationRepository.updateStation(station);
         return ResponseEntity.ok("new data was added");
     }
+
     @GetMapping("past/week")
     public List<Data> pastWeek() {
         return dataService.getLastWeekData();

@@ -12,3 +12,37 @@ export const addStation = async (station) => {
     throw error;
   }
 };
+
+// GET: récupérer toutes les stations
+export const getAllStations = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/all`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur API GET:", error);
+    throw error;
+  }
+};
+
+
+
+export const updateStation = async (id, updatedData) => {
+  try {
+    const response = await axios.put(`${API_URL}/${id}`, updatedData);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la station:", error);
+    throw error;
+  }
+};
+
+
+// DELETE: supprimer une station
+export const deleteStation = async (id) => {
+  try {
+    const response = await axios.delete(`${API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la station:", error);
+    throw error;
+  }}
