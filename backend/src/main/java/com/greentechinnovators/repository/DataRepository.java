@@ -12,4 +12,5 @@ import java.util.List;
 public interface DataRepository extends MongoRepository<Data,String> {
     List<Data> findByTimestampAfter(LocalDateTime timestamp);
     List<Data> findFirst10ByOrderByIdDesc();
+    List<Data> findByTimestampBetween(LocalDateTime start, LocalDateTime end);
 }

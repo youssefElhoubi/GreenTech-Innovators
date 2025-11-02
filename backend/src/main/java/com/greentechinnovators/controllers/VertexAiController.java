@@ -224,26 +224,47 @@ public class VertexAiController {
     public ResponseEntity<String> generateReport() {
         try {
             List<Data> recentData = dataService.latest10();
+            if (recentData == null || recentData.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("{\"message\": \"No data available to generate report.\"}");
+            }
+
             String dataJson = objectMapper.writeValueAsString(recentData);
 
-            String prompt = "You are an environmental data analyst for Morocco. " +
-                    "Based on the following recent ESP32 sensor data: " + dataJson +
-                    ", generate a JSON report for the last 7 days for Safi. " +
-                    "The JSON array should contain objects like: " +
-                    "{ \"date\": \"YYYY-MM-DD\", \"AQIMoyen\": 0, \"Evolution\": \"+/-%\", \"AlertesRouges\": 0, \"AvertissementsJaunes\": 0 }." +
-                    "The report should be complete, accurate, and ready to display on a dashboard. " +
-                    "Return ONLY JSON, nothing else.";
+            String prompt = String.format("""
+                You are an environmental data analyst for Morocco.
+                Based on the following recent ESP32 sensor data: %s
+                Generate a JSON report for the last 7 days for Safi.
+                The JSON array should contain objects like:
+                {
+                  "date": "YYYY-MM-DD",
+                  "AQIMoyen": 0,
+                  "Evolution": "+/-%",
+                  "AlertesRouges": 0,
+                  "AvertissementsJaunes": 0
+                }.
+                The report should be complete, accurate, and ready to display on a dashboard.
+                Return ONLY valid JSON array, without explanations or markdown.
+                """, dataJson);
 
             String result = vertexAiService.ask(prompt);
 
+            if (!result.trim().startsWith("[") && !result.trim().startsWith("{")) {
+                result = "{\"error\": \"Unexpected response format from AI.\"}";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(result);
+            }
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+
             return new ResponseEntity<>(result, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\": \"" + e.getMessage() + "\"}");
+                    .body("{\"error\": \"" + e.getMessage().replace("\"", "'") + "\"}");
         }
     }
 
