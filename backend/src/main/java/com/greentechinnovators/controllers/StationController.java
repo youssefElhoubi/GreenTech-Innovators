@@ -57,7 +57,7 @@ public class StationController {
 
         Station station = stationsService.saveMacAddress(mac);
 
-        return ResponseEntity.ok("MAC processed: " + station.getAddressMAC());
+        return ResponseEntity.ok("MAC processed: " + station.getAdresseMAC());
     }
 
 }
