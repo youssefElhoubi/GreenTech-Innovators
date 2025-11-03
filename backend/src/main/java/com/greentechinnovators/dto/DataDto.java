@@ -36,7 +36,9 @@ public class DataDto {
     @PositiveOrZero(message = "Lumiere cannot be negative")
     private Integer lumiere;
 
-    public DataDto(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere) {
+    private String mac;
+
+    public DataDto(String id, Double temp, Float humidity, Integer pression, Integer co2, Integer gas, Double uv, Integer lumiere, String mac) {
         this.id = id;
         this.temp = temp;
         this.humidity = humidity;
@@ -45,6 +47,7 @@ public class DataDto {
         this.gas = gas;
         this.uv = uv;
         this.lumiere = lumiere;
+        this.mac = mac;
     }
 
     public DataDto() {

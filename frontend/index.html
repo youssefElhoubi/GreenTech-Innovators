@@ -5,13 +5,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoMaroc Monitor Pro - Dashboard Environnemental</title>
+    <script>
+        
+        window.global = window;
+    </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #root {
+            min-height: 100vh;
+        }
+        #root:empty::before {
+            content: 'Loading React Application...';
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f172a 100%);
+            color: white;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-size: 24px;
+        }
+    </style>
 </head>
 
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+        // Debug script to catch any errors
+        window.addEventListener('error', function(e) {
+            console.error('Global error caught:', e.error);
+            document.body.innerHTML += '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);color:#ef4444;padding:40px;z-index:99999;overflow:auto;font-family:monospace;"><h1>Application Error</h1><pre>' + e.error.stack + '</pre></div>';
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
+        
+        console.log(' HTML loaded successfully');
+    </script>
 </body>
 
 </html>
