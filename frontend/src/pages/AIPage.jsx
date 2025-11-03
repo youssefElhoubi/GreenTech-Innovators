@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Chart } from "chart.js";
+import { Chart, registerables } from "chart.js";
 import { fetchPredictions } from "../api/predictionsApi";
 import { fetchingKpis } from "../api/kpis";
 import { fetchWeekly } from "../api/weeklyApi";
 import AccuracyChart from "../components/AccuracyChart";
+
+Chart.register(...registerables);
 
 function AIPage() {
   const eventTypesChartRef = useRef(null);

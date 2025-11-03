@@ -6,12 +6,20 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <HTTPClient.h>
+#include <Adafruit_BME280.h>
 
 // ======================= CONFIG =======================
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+// === SENSOR PINS ===
+#define MQ6_PIN 35
+#define UV_PIN 32
+
+// === CREATE SENSOR OBJECTS ===
+Adafruit_BME280 bme;
 
 // Wi-Fi settings
 const char* ssid = "Youcode";
@@ -32,7 +40,6 @@ const int daylightOffset_sec = 0;
 
 // ======================= FUNCTIONS =======================
 
-// Send MAC address to Spring Boot REST endpoint before WS
 void sendMacToServer() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -50,20 +57,18 @@ void sendMacToServer() {
     int httpResponseCode = http.POST(requestBody);
 
     if (httpResponseCode > 0) {
-      Serial.printf(" MAC sent! Response: %d\n", httpResponseCode);
-      String response = http.getString();
-      Serial.println(response);
+      Serial.printf("MAC sent! Response: %d\n", httpResponseCode);
+      Serial.println(http.getString());
     } else {
-      Serial.printf(" Error sending MAC: %d\n", httpResponseCode);
+      Serial.printf("Error sending MAC: %d\n", httpResponseCode);
     }
 
     http.end();
   } else {
-    Serial.println(" WiFi not connected, cannot send MAC.");
+    Serial.println("WiFi not connected, cannot send MAC.");
   }
 }
 
-// Initialize time via NTP
 void initTime() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   Serial.println("Waiting for NTP time...");
@@ -76,7 +81,6 @@ void initTime() {
   Serial.println("\nTime initialized!");
 }
 
-// Format time as ISO8601
 String getISO8601Time() {
   time_t now_sec = time(nullptr);
   struct tm timeinfo;
@@ -92,17 +96,16 @@ String getISO8601Time() {
   return String(buffer);
 }
 
-// Send STOMP frame
 void sendStompFrame(String frame) {
   frame += '\0';
   webSocket.sendTXT(frame);
 }
 
-// WebSocket event handler
+// ---------------- WebSocket Events ----------------
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.println(" WebSocket Disconnected.");
+      Serial.println("WebSocket Disconnected.");
       isStompConnected = false;
       break;
 
@@ -111,30 +114,28 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       {
         String connectFrame = "CONNECT\n";
         connectFrame += "accept-version:1.2\n";
-        connectFrame += "host:" + String(ws_server) + "\n";
-        connectFrame += "\n";
+        connectFrame += "host:" + String(ws_server) + "\n\n";
         sendStompFrame(connectFrame);
       }
       break;
 
     case WStype_TEXT:
-      Serial.print(" Received: ");
+      Serial.print("Received: ");
       Serial.println((char*)payload);
 
       if (String((char*)payload).startsWith("CONNECTED")) {
-        Serial.println(" STOMP Connection Successful!");
+        Serial.println("STOMP Connection Successful!");
         isStompConnected = true;
 
         String subscribeFrame = "SUBSCRIBE\n";
         subscribeFrame += "id:sub-0\n";
-        subscribeFrame += "destination:/topic/data\n";
-        subscribeFrame += "\n";
+        subscribeFrame += "destination:/topic/data\n\n";
         sendStompFrame(subscribeFrame);
       }
       break;
 
     case WStype_ERROR:
-      Serial.println(" WebSocket Error!");
+      Serial.println("WebSocket Error!");
       isStompConnected = false;
       break;
 
@@ -143,19 +144,48 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   }
 }
 
-// Display status on OLED
-void displayStatus() {
+// === SENSOR FUNCTIONS ===
+float readUV() {
+  int rawValue = analogRead(UV_PIN);
+  float voltage = (rawValue / 4095.0) * 3.3;
+  float uvIndex = (voltage - 1.0) / 0.1;
+  if (uvIndex < 0) uvIndex = 0;
+  if (uvIndex > 15) uvIndex = 15;
+  return uvIndex;
+}
+
+int lastMQ6Reading = 0;
+int readMQ6_Raw() {
+  int sum = 0;
+  for (int i = 0; i < 20; i++) sum += analogRead(MQ6_PIN);
+  lastMQ6Reading = sum / 20;
+  return lastMQ6Reading;
+}
+float readMQ6_CO2() {
+  float gas_ppm = map(lastMQ6Reading, 100, 1000, 200, 5000);
+  if (gas_ppm < 200) gas_ppm = 200;
+  if (gas_ppm > 10000) gas_ppm = 10000;
+  return gas_ppm;
+}
+float readMQ6_Gas() {
+  float gas_quality = map(lastMQ6Reading, 100, 1000, 0, 100);
+  if (gas_quality < 0) gas_quality = 0;
+  if (gas_quality > 100) gas_quality = 100;
+  return gas_quality;
+}
+
+// ---------------- OLED DISPLAY ----------------
+void displayStatus(float temp, float hum, float press, float co2, float gas, float uv) {
   display.clearDisplay();
-  display.setCursor(0,0);
-  display.println("ESP32 Status:");
-  display.print("WiFi: ");
-  display.println(WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected");
-  display.print("WS: ");
-  display.println(isStompConnected ? "Connected" : "Disconnected");
-  display.print("MAC: ");
-  display.println(WiFi.macAddress());
-  display.print("IP: ");
-  display.println(WiFi.localIP());
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+
+  display.print("IP:"); display.println(WiFi.localIP());
+  display.print("MAC:"); display.println(WiFi.macAddress());
+  display.print("T:"); display.print(temp, 1); display.print("C H:"); display.println(hum,0);
+  display.print("P:"); display.print(press,0); display.println("hPa");
+  display.print("CO2:"); display.print(co2,0); display.println("ppm");
+  display.print("Gas:"); display.print(gas,0); display.print("% UV:"); display.println(uv,1);
   display.display();
 }
 
@@ -172,23 +202,29 @@ void setup() {
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
-  
-  // Connect Wi-Fi
+
+  // Sensor pins
+  pinMode(UV_PIN, INPUT);
+  pinMode(MQ6_PIN, INPUT);
+  analogSetAttenuation(ADC_11db);
+
+  // BME280 init
+  if (!bme.begin(0x76) && !bme.begin(0x77)) {
+    Serial.println("BME280 not detected!");
+  }
+
+  // Wi-Fi
   WiFi.begin(ssid, password);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+    delay(500); Serial.print(".");
   }
-  Serial.println();
-  Serial.print("Connected! IP: ");
-  Serial.println(WiFi.localIP());
+  Serial.println(); Serial.println(WiFi.localIP());
 
-  //  Send MAC before WebSocket
   sendMacToServer();
-
-  // Init time + WebSocket
   initTime();
+
+  // WebSocket
   webSocket.begin(ws_server, ws_port, ws_path);
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
@@ -197,33 +233,44 @@ void setup() {
 // ======================= LOOP =======================
 void loop() {
   webSocket.loop();
-  displayStatus();
 
+  // Read sensors
+  float temperature = bme.readTemperature();
+  float humidity = bme.readHumidity();
+  float pressure = bme.readPressure() / 100.0;
+  float uv = readUV();
+  readMQ6_Raw();
+  float co2 = readMQ6_CO2();
+  float gas = readMQ6_Gas();
+
+  // Display
+  displayStatus(temperature, humidity, pressure, co2, gas, uv);
+
+  // Send data every 2 sec
   static unsigned long lastSend = 0;
-  if (isStompConnected && millis() - lastSend > 5000) {
+  if (isStompConnected && millis() - lastSend > 2000) {
     lastSend = millis();
 
     StaticJsonDocument<400> json;
     json["mac"] = WiFi.macAddress();
-    json["temp"] = random(20, 30);
-    json["humidity"] = random(30, 80);
-    json["pression"] = random(1000, 1020);
-    json["co2"] = random(400, 600);
-    json["gas"] = random(30, 70);
-    json["uv"] = random(1, 11);
-    json["lumiere"] = random(5000, 12000);
+    json["temp"] = temperature;
+    json["humidity"] = humidity;
+    json["pression"] = pressure;
+    json["co2"] = co2;
+    json["gas"] = gas;
+    json["uv"] = uv;
     json["timestamp"] = getISO8601Time();
+
     String payloadJson;
     serializeJson(json, payloadJson);
 
     String sendFrame = "SEND\n";
     sendFrame += "destination:/app/addData\n";
     sendFrame += "content-type:application/json\n";
-    sendFrame += "content-length:" + String(payloadJson.length()) + "\n";
-    sendFrame += "\n";
+    sendFrame += "content-length:" + String(payloadJson.length()) + "\n\n";
     sendFrame += payloadJson;
 
     sendStompFrame(sendFrame);
-    Serial.println(" Sent JSON data with timestamp to Spring Boot!");
+    Serial.println("Sent JSON data with real timestamp to Spring Boot!");
   }
 }

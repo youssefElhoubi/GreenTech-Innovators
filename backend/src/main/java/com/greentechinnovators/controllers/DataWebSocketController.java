@@ -23,11 +23,11 @@ public class DataWebSocketController {
         this.stationRepository = stationRepository;
     }
 
-    @MessageMapping("/addData/{address}")
+    @MessageMapping("/addData")
     @SendTo("/topic/data")
-    public ResponseEntity<String> addData(DataDto data , @PathVariable String address ) {
+    public ResponseEntity<String> addData(DataDto data ) {
         Data edata = dataService.add(data);
-        Station station = stationRepository.findByAddressMAC(address);
+        Station station = stationRepository.findByAddressMAC(data.getMac());
         station.getData().add(edata);
         stationRepository.updateStation(station);
         return ResponseEntity.ok("new data was added");
