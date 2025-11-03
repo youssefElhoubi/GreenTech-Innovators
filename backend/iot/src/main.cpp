@@ -14,11 +14,11 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Wi-Fi settings
-const char* ssid = "Cafe Ryad gzoula ☕️☕️";
-const char* password = "90807060";
+const char* ssid = "Youcode";
+const char* password = "Youcode@2024";
 
 // Server settings
-const char* ws_server = "192.168.1.48";
+const char* ws_server = "192.168.8.110";
 const int ws_port = 8080;
 const char* ws_path = "/ws-native";
 
@@ -37,7 +37,7 @@ void sendMacToServer() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     String mac = WiFi.macAddress();
-    String serverUrl = "http://" + String(ws_server) + ":" + String(ws_port) + "/esp32/saveMac";
+    String serverUrl = "http://" + String(ws_server) + ":" + String(ws_port) + "/api/station/esp32/saveMac";
 
     http.begin(serverUrl);
     http.addHeader("Content-Type", "application/json");
