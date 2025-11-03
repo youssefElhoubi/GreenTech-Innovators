@@ -1,4 +1,4 @@
-import React,{ useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getColor, getRadius } from '../utils/helpers';
@@ -107,7 +107,7 @@ function MapView({ cities, onCityClick }) {
           </div>
           <div className="legend-item">
             <div className="legend-circle" style={{ background: '#ef4444' }}></div>
-            <span>Très élevé (>150)</span>
+            <span>Très élevé (&gt;150)</span>
           </div>
         </div>
       </div>

@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Chart } from "chart.js";
+import { Chart, registerables } from "chart.js";
+
+Chart.register(...registerables);
 
 function AccuracyChart({ weeklyData }) {
   const accuracyChartRef = useRef(null);
