@@ -6,9 +6,28 @@ import com.greentechinnovators.entity.Station;
 import com.greentechinnovators.repository.DataRepository;
 import com.greentechinnovators.repository.PredictionRepository;
 import com.greentechinnovators.repository.StationRepository;
-import com.greentechinnovators.dto.WeeklyReportDto;
 import org.springframework.stereotype.Service;
+// Pour la manipulation de fichiers
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
+// Pour l'encodage UTF-8
+import java.nio.charset.StandardCharsets;
+
+// Pour les chemins et création de dossiers
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+// Pour les dates
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+// Pour les collections
+import java.util.List;
+import java.util.Map;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,6 +50,7 @@ public class WeeklyReportService {
         this.stationRepository = stationRepository;
     }
 
+    // Génère les données du rapport
     public Map<String, Object> generateReportData() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime weekAgo = now.minusDays(7);
@@ -47,7 +67,6 @@ public class WeeklyReportService {
 
         for (Station s : stations) {
             String cityName = s.getCity() != null ? s.getCity().getName() : "Unknown";
-
             thisWeekByCity.putIfAbsent(cityName, new ArrayList<>());
             lastWeekByCity.putIfAbsent(cityName, new ArrayList<>());
             predictionsByCity.putIfAbsent(cityName, new ArrayList<>());
@@ -125,45 +144,133 @@ public class WeeklyReportService {
         return report;
     }
 
+
     public Path generateCsvReport() {
         try {
-            Map<String, Object> reportData = generateReportData(); // Map<String, Object>
-            if (reportData.isEmpty()) return null;
-
-            List<Map<String, Object>> cities = (List<Map<String, Object>>) reportData.get("cities");
-            if (cities == null || cities.isEmpty()) return null;
-
-            Path reportPath = Path.of("reports/weekly-report-" + LocalDate.now() + ".csv");
-            Files.createDirectories(reportPath.getParent());
-
-            try (FileWriter writer = new FileWriter(reportPath.toFile())) {
-                writer.write("Date,City,AQIMoyen,Evolution,AlertesRouges,AvertissementsJaunes,TempMoyen,HumidityMoyen,StationsActives,AlertColor\n");
-
-                String reportDate = (String) reportData.get("date");
-
-                for (Map<String, Object> cityData : cities) {
-                    writer.write(String.format("%s,%s,%.2f,%s,%d,%d,%.2f,%.2f,%d,%s\n",
-                            reportDate,
-                            cityData.get("name"),
-                            ((Number) cityData.get("aqiMoyen")).doubleValue(),
-                            cityData.get("evolution"),
-                            ((Number) cityData.get("alertesRouges")).intValue(),
-                            ((Number) cityData.get("avertissementsJaunes")).intValue(),
-                            ((Number) cityData.get("tempMoyen")).doubleValue(),
-                            ((Number) cityData.get("humidityMoyen")).doubleValue(),
-                            ((Number) cityData.get("stationsActives")).intValue(),
-                            cityData.get("alertColor")
-                    ));
-                }
+            // Récupération et validation des données
+            Map<String, Object> reportData = generateReportData();
+            if (reportData == null || reportData.isEmpty()) {
+                System.err.println("⚠️ Aucune donnée de rapport disponible");
+                return null;
             }
 
-            System.out.println("✅ Weekly CSV report generated: " + reportPath.toAbsolutePath());
+            List<Map<String, Object>> cities = (List<Map<String, Object>>) reportData.get("cities");
+            if (cities == null || cities.isEmpty()) {
+                System.err.println("⚠️ Aucune donnée de ville disponible");
+                return null;
+            }
+
+            // Création du fichier CSV avec timestamp
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            Path reportPath = Path.of("reports/weekly-report-" + timestamp + ".csv");
+            Files.createDirectories(reportPath.getParent());
+
+            // Génération du CSV avec encodage UTF-8
+            try (BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(reportPath.toFile()), StandardCharsets.UTF_8))) {
+
+                // ===== EN-TÊTE DU RAPPORT =====
+                writer.write("========================================\n");
+                writer.write("WEEKLY ENVIRONMENT REPORT\n");
+                writer.write("========================================\n");
+                writer.write("Report Date : " + reportData.get("date") + "\n");
+                writer.write("Generated On : " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "\n");
+                writer.write("Total Cities : " + cities.size() + "\n");
+                writer.write("========================================\n\n");
+
+                // ===== DONNÉES PAR VILLE (ligne par ligne) =====
+                int cityNumber = 1;
+                for (Map<String, Object> cityData : cities) {
+                    writer.write("--- City #" + cityNumber + " ---\n");
+                    writer.write("Date : " + reportData.get("date") + "\n");
+                    writer.write("City : " + getString(cityData, "name") + "\n");
+                    writer.write("AQI : " + formatNumber(cityData.get("aqiMoyen"), 2) + "\n");
+                    writer.write("Evolution : " + getString(cityData, "evolution") + "\n");
+                    writer.write("Red Alerts : " + formatInteger(cityData.get("alertesRouges")) + "\n");
+                    writer.write("Yellow Warnings : " + formatInteger(cityData.get("avertissementsJaunes")) + "\n");
+                    writer.write("Temperature (°C) : " + formatNumber(cityData.get("tempMoyen"), 1) + "\n");
+                    writer.write("Humidity (%) : " + formatNumber(cityData.get("humidityMoyen"), 1) + "\n");
+                    writer.write("Active Stations : " + formatInteger(cityData.get("stationsActives")) + "\n");
+                    writer.write("Alert Level : " + getString(cityData, "alertColor") + "\n");
+                    writer.write("\n"); // Ligne vide entre chaque ville
+
+                    cityNumber++;
+                }
+
+                // ===== STATISTIQUES GLOBALES =====
+                writer.write("========================================\n");
+                writer.write("SUMMARY\n");
+                writer.write("========================================\n");
+                writer.write("Total Red Alerts : " + calculateTotalRedAlerts(cities) + "\n");
+                writer.write("Total Yellow Warnings : " + calculateTotalYellowWarnings(cities) + "\n");
+                writer.write("Average AQI : " + String.format("%.2f", calculateAverageAQI(cities)) + "\n");
+                writer.write("Report Status : Complete\n");
+                writer.write("========================================\n");
+            }
+
+            System.out.println("✅ CSV report generated successfully: " + reportPath.toAbsolutePath());
             return reportPath;
 
+        } catch (IOException e) {
+            System.err.println("❌ Erreur I/O lors de la génération du CSV: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         } catch (Exception e) {
+            System.err.println("❌ Erreur inattendue: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
+    }
+
+// ===== MÉTHODES UTILITAIRES (inchangées) =====
+
+    private String formatNumber(Object value, int decimals) {
+        if (value == null) {
+            return "0." + "0".repeat(decimals);
+        }
+
+        try {
+            double number = ((Number) value).doubleValue();
+            return String.format("%." + decimals + "f", number);
+        } catch (Exception e) {
+            return "0." + "0".repeat(decimals);
+        }
+    }
+
+    private String formatInteger(Object value) {
+        if (value == null) {
+            return "0";
+        }
+
+        try {
+            return String.valueOf(((Number) value).intValue());
+        } catch (Exception e) {
+            return "0";
+        }
+    }
+
+    private String getString(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        return value != null ? value.toString() : "";
+    }
+
+    private int calculateTotalRedAlerts(List<Map<String, Object>> cities) {
+        return cities.stream()
+                .mapToInt(city -> ((Number) city.getOrDefault("alertesRouges", 0)).intValue())
+                .sum();
+    }
+
+    private int calculateTotalYellowWarnings(List<Map<String, Object>> cities) {
+        return cities.stream()
+                .mapToInt(city -> ((Number) city.getOrDefault("avertissementsJaunes", 0)).intValue())
+                .sum();
+    }
+
+    private double calculateAverageAQI(List<Map<String, Object>> cities) {
+        return cities.stream()
+                .mapToDouble(city -> ((Number) city.getOrDefault("aqiMoyen", 0)).doubleValue())
+                .average()
+                .orElse(0.0);
     }
 
 }

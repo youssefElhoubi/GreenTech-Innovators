@@ -76,7 +76,7 @@ public class StationsService {
     
 
     public Station saveMacAddress(String mac) {
-        Optional<Station> existingStation = Optional.ofNullable(stationRepository.findByAddressMAC(mac));
+        Optional<Station> existingStation = Optional.ofNullable(stationRepository.findByAdresseMAC(mac));
 
         if (existingStation.isPresent()) {
             System.out.println(" Station already exists for MAC: " + mac);
@@ -84,7 +84,7 @@ public class StationsService {
         }
 
         Station newStation = new Station();
-        newStation.setAddressMAC(mac);
+        newStation.setAdresseMAC(mac);
         newStation.setName("Station " + mac.substring(Math.max(0, mac.length() - 4)));
         newStation.setLatitude(0.0);
         newStation.setLongitude(0.0);
