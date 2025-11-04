@@ -25,12 +25,12 @@ public class DataWebSocketController {
 
     @MessageMapping("/addData")
     @SendTo("/topic/data")
-    public ResponseEntity<String> addData(DataDto data ) {
+    public Data addData(DataDto data ) {
         Data edata = dataService.add(data);
         Station station = stationRepository.findByAddressMAC(data.getMac());
         station.getData().add(edata);
         stationRepository.updateStation(station);
-        return ResponseEntity.ok("new data was added");
+        return edata;
     }
 
     @MessageMapping("/getData")
