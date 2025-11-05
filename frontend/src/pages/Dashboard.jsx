@@ -1,24 +1,29 @@
-import React, { useState, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import MapView from '../components/MapView';
 import CityCard from '../components/CityCard';
 import SensorChart from '../components/SensorChart';
-import { cities } from '../data/cities';
 import { sensorConfigs } from '../data/sensors';
 import { useWebSocket } from '../context/WebSocketContext';
+import { fetchCitiesWithStats } from '../api/citiesApi';
 
 function Dashboard() {
   const { latestData, isConnected } = useWebSocket();
 
   const [activeTab, setActiveTab] = useState('temp');
   const [selectedCity, setSelectedCity] = useState('Casablanca');
-  const [sortedCities] = useState([...cities].sort((a, b) => b.aqi - a.aqi));
+  const [sortedCities, setSortedCities] = useState([]); // Start with empty array
+  const [isLoadingCities, setIsLoadingCities] = useState(true); // Start loading immediately
 
-  const handleCityClick = useCallback((city) => {
-    const cityCardId = `city-${city.name.toLowerCase().replace(/\s+/g, '-')}`;
+  const handleCityClick = useCallback((cityNameOrObj) => {
+    // Handle both string (city name) and object (full city data)
+    const cityName = typeof cityNameOrObj === 'string' ? cityNameOrObj : cityNameOrObj.name;
+    const city = typeof cityNameOrObj === 'object' ? cityNameOrObj : sortedCities.find(c => c.name === cityNameOrObj);
+    
+    const cityCardId = `city-${cityName.toLowerCase().replace(/\s+/g, '-')}`;
     const cityCard = document.getElementById(cityCardId);
-    if (cityCard) {
+    if (cityCard && city) {
       cityCard.style.transition = 'all 0.5s ease';
       cityCard.style.transform = 'scale(1.05)';
       cityCard.style.boxShadow = `0 0 30px ${
@@ -38,10 +43,40 @@ function Dashboard() {
         cityCard.style.boxShadow = '';
       }, 2000);
     }
-  }, []);
+  }, [sortedCities]);
 
-  const handleMapCityClick = useCallback((map, city) => {
-    map.setView([city.lat, city.lng], 8);
+  // Load cities with live statistics from backend
+  useEffect(() => {
+    const loadCitiesStats = async () => {
+      setIsLoadingCities(true);
+      try {
+        const citiesStats = await fetchCitiesWithStats();
+        console.log(' Fetching cities from backend...');
+        
+        if (citiesStats && citiesStats.length > 0) {
+          console.log('  Loaded live cities stats:', citiesStats);
+          // Sort by AQI (highest first)
+          const sorted = citiesStats.sort((a, b) => b.aqi - a.aqi);
+          setSortedCities(sorted);
+        } else {
+          console.warn('  No cities data received from backend');
+          setSortedCities([]); // Keep empty instead of using static data
+        }
+      } catch (error) {
+        console.error('  Error loading cities stats:', error);
+        setSortedCities([]); // Keep empty on error
+      } finally {
+        setIsLoadingCities(false);
+      }
+    };
+
+    // Load immediately on mount
+    loadCitiesStats();
+    
+    // Refresh cities data every 1 second
+    const interval = setInterval(loadCitiesStats, 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -152,15 +187,35 @@ function Dashboard() {
         <div className="section-card">
           <h2 className="section-title">
             <i className="fas fa-city"></i> Villes en Direct
+            {isLoadingCities && (
+              <span style={{ marginLeft: '10px', fontSize: '0.8rem', color: '#10b981' }}>
+                <i className="fas fa-sync fa-spin"></i> Chargement...
+              </span>
+            )}
           </h2>
           <div className="cities-grid">
-            {sortedCities.map((city) => (
-              <CityCard
-                key={city.name}
-                city={city}
-                onClick={() => handleMapCityClick(null, city)}
-              />
-            ))}
+            {sortedCities.length > 0 ? (
+              sortedCities.map((city) => (
+                <CityCard
+                  key={city.name}
+                  city={city}
+                  onClick={() => handleCityClick(city.name)}
+                />
+              ))
+            ) : (
+              <div style={{ 
+                gridColumn: '1 / -1', 
+                textAlign: 'center', 
+                padding: '40px',
+                color: 'rgba(255, 255, 255, 0.6)'
+              }}>
+                <i className="fas fa-database" style={{ fontSize: '48px', marginBottom: '15px' }}></i>
+                <p>Aucune donnée de ville disponible</p>
+                <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>
+                  Assurez-vous que le backend est en cours d'exécution
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -193,7 +248,7 @@ function Dashboard() {
                 backdropFilter: 'blur(10px)',
               }}
             >
-              {cities.map((city) => (
+              {sortedCities.map((city) => (
                 <option
                   key={city.name}
                   value={city.name}
