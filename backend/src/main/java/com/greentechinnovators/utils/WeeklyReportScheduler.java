@@ -13,7 +13,7 @@ public class WeeklyReportScheduler {
         this.weeklyReportService = weeklyReportService;
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 9 * * MON")
     public void run() {
         weeklyReportService.generateCsvReport();
     }
