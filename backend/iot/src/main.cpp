@@ -341,15 +341,14 @@ void loop() {
   if (isStompConnected && millis() - lastSend > 1000) {
     lastSend = millis();
 
-    StaticJsonDocument<512> json;  // زيادة الحجم قليلاً
+    StaticJsonDocument<512> json;
     
-    // إرسال القيم بشكل مباشر (ArduinoJson يدعم double/float)
     json["temp"] = (double)temperature;
     json["humidity"] = (float)humidity;
     json["pression"] = (int)pressure;
     json["co2"] = (int)co2;
     json["gas"] = (int)gas;
-    json["uv"] = (double)uv;  // استخدام double للدقة
+    json["uv"] = (double)uv;
     json["lumiere"] = 0;
     json["timestamp"] = getISO8601Time();
     json["mac"] = WiFi.macAddress();
