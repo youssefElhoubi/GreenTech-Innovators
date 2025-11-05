@@ -40,13 +40,6 @@ export const sensorConfigs = {
     icon: 'fa-sun',
     gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
     shadow: 'rgba(245, 158, 11, 0.3)'
-  },
-  light: { 
-    label: 'Lumière (lux)', 
-    color: '#fbbf24', 
-    icon: 'fa-lightbulb',
-    gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-    shadow: 'rgba(251, 191, 36, 0.3)'
   }
 };
 

@@ -110,28 +110,46 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   }
 }
 
-// === FONCTION POUR LIRE LE CAPTEUR GYML8511 (UV) - ACTIVÉE ===
+// === FONCTION POUR LIRE LE CAPTEUR GYML8511/ML8511 (UV) ===
 float readUV() {
-  int rawValue = analogRead(GYML8511_PIN);
-  // Conversion en indice UV (0-15)
-  // Le GYML8511 sort 1V pour UV index 0, et augmente de ~0.1V par niveau
-  float voltage = (rawValue / 4095.0) * 3.3;  // Conversion en volts
-  float uvIndex = (voltage - 1.0) / 0.1;       // Calcul de l'index UV
+  // Moyenne de plusieurs lectures pour stabilité
+  int sum = 0;
+  for (int i = 0; i < 10; i++) {
+    sum += analogRead(GYML8511_PIN);
+    delay(2);
+  }
+  int rawValue = sum / 10;
+  
+  // Conversion en volts
+  float voltage = (rawValue / 4095.0) * 3.3;
+  
+  // ML8511 Calibration Alternative
+  // Option 1: Mapping linéaire de voltage vers UV index (0-15)
+  // float uvIndex = (voltage / 2.9) * 15.0;
+  
+  // Option 2: Retourner voltage multiplié par 10 pour avoir des valeurs entre 0-33
+  float uvIndex = voltage * 10.0;
+  
+  // Option 3: Retourner voltage directement (0.0 - 3.3)
+  // float uvIndex = voltage;
 
   // DEBUG: Afficher les valeurs brutes
   static unsigned long lastDebug = 0;
-  if (millis() - lastDebug > 2000) {  // Toutes les 2 secondes
+  if (millis() - lastDebug > 2000) {
     lastDebug = millis();
     Serial.print("[UV DEBUG] Raw: ");
     Serial.print(rawValue);
     Serial.print(" | Voltage: ");
-    Serial.print(voltage, 2);
+    Serial.print(voltage, 3);
     Serial.print("V | UV Index: ");
-    Serial.println(uvIndex, 2);
+    Serial.print(uvIndex, 2);
+    Serial.println();
   }
 
+  // Limiter les valeurs entre 0 et 15
   if (uvIndex < 0) uvIndex = 0;
   if (uvIndex > 15) uvIndex = 15;
+  
   return uvIndex;
 }
 
@@ -323,20 +341,27 @@ void loop() {
   if (isStompConnected && millis() - lastSend > 1000) {
     lastSend = millis();
 
-    StaticJsonDocument<400> json;
-
-    json["temp"] = temperature;
-    json["humidity"] = humidity;
-    json["pression"] = pressure;
-    json["co2"] = co2;
-    json["gas"] = gas;
-    json["uv"] = uv;
+    StaticJsonDocument<512> json;  // زيادة الحجم قليلاً
+    
+    // إرسال القيم بشكل مباشر (ArduinoJson يدعم double/float)
+    json["temp"] = (double)temperature;
+    json["humidity"] = (float)humidity;
+    json["pression"] = (int)pressure;
+    json["co2"] = (int)co2;
+    json["gas"] = (int)gas;
+    json["uv"] = (double)uv;  // استخدام double للدقة
     json["lumiere"] = 0;
     json["timestamp"] = getISO8601Time();
     json["mac"] = WiFi.macAddress();
 
     String payloadJson;
     serializeJson(json, payloadJson);
+
+    // Debug: afficher le JSON complet
+    Serial.print("[SEND DEBUG] UV value: ");
+    Serial.print(uv, 2);
+    Serial.print(" | JSON: ");
+    Serial.println(payloadJson);
 
     String sendFrame = "SEND\n";
     sendFrame += "destination:/app/addData\n";
@@ -346,6 +371,6 @@ void loop() {
     sendFrame += payloadJson;
 
     sendStompFrame(sendFrame);
-    Serial.println("Sent JSON data with real timestamp to Spring Boot!");
+    Serial.println("✓ Sent JSON data with real timestamp to Spring Boot!");
   }
 }

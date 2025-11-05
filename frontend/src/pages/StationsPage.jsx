@@ -36,7 +36,6 @@ if (d.humidity !== undefined) list.push(`💧 ${d.humidity}%`);
 if (d.co2 !== undefined) list.push(`🫁 ${d.co2} ppm`);
 if (d.gas !== undefined) list.push(`💨 ${d.gas}`);
 if (d.uv !== undefined) list.push(`☀️ ${d.uv}`);
-if (d.lumiere !== undefined) list.push(`💡 ${d.lumiere}`);
 
     return list;
   }).flat();
@@ -340,7 +339,7 @@ const handleDeleteStation = async (id) => {
         <i className="fas fa-microchip"></i> Capteurs Installés
       </label>
       <div className="sensors-checkboxes">
-        {['DHT22', 'MQ-135', 'BMP280', 'MICS-5524', 'ML8511', 'BH1750'].map((sensor) => (
+        {['DHT22', 'MQ-135', 'BMP280', 'MICS-5524', 'ML8511'].map((sensor) => (
           <label key={sensor} className="sensor-checkbox">
             <input
               type="checkbox"
@@ -360,7 +359,6 @@ const handleDeleteStation = async (id) => {
               {sensor === 'BMP280' && '📊 BMP280 (Pression)'}
               {sensor === 'MICS-5524' && '💨 MICS-5524 (Gaz)'}
               {sensor === 'ML8511' && '☀️ ML8511 (UV)'}
-              {sensor === 'BH1750' && '💡 BH1750 (Lumière)'}
             </span>
           </label>
         ))}
