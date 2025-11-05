@@ -133,8 +133,8 @@ function Dashboard() {
           icon="fa-sun"
           label="UV (ML8511)"
           value={
-            latestData
-              ? latestData.uv.toFixed(1)
+            latestData && latestData.uv !== undefined && latestData.uv !== null
+              ? latestData.uv.toFixed(2)
               : isConnected
               ? '...'
               : 'Offline'
@@ -143,22 +143,6 @@ function Dashboard() {
           gradient="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
           shadow="rgba(245, 158, 11, 0.3)"
           tooltip="Indice UV détecté par ML8511"
-        />
-
-        <StatCard
-          icon="fa-lightbulb"
-          label="Lumière (BH1750)"
-          value={
-            latestData
-              ? `${latestData.lumiere}`
-              : isConnected
-              ? '...'
-              : 'Offline'
-          }
-          color="#fbbf24"
-          gradient="linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)"
-          shadow="rgba(251, 191, 36, 0.3)"
-          tooltip="Intensité lumineuse mesurée par BH1750"
         />
       </div>
 

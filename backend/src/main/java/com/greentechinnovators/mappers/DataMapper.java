@@ -18,7 +18,6 @@ public class DataMapper {
         dto.setCo2(data.getCo2());
         dto.setGas(data.getGas());
         dto.setUv(data.getUv());
-        dto.setLumiere(data.getLumiere());
         dto.setMac(data.getMac());
         return dto;
     }
@@ -34,7 +33,6 @@ public class DataMapper {
         data.setCo2(dto.getCo2());
         data.setGas(dto.getGas());
         data.setUv(dto.getUv());
-        data.setLumiere(dto.getLumiere());
         data.setMac(dto.getMac());
         return data;
     }
