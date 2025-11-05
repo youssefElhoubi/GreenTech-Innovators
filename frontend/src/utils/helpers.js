@@ -15,7 +15,15 @@ export function getColorWithAlpha(aqi, alpha) {
 }
 
 export function getRadius(aqi) {
-  return Math.max(10000, aqi * 300);
+  // Rayon proportionnel à l'AQI en mètres
+  // Pour un zoom 6 (vue du Maroc), les cercles doivent être TRÈS petits
+  // Minimum 500m (0.5km), maximum 2000m (2km) pour rester visibles sans recouvrir toute la carte
+  const baseRadius = 500; // 0.5km minimum
+  const aqiMultiplier = 10; // 10m par point d'AQI (très petit)
+  const calculatedRadius = baseRadius + (aqi * aqiMultiplier);
+
+  // Limiter entre 0.5km et 2km pour rester visible et proportionnel
+  return Math.max(500, Math.min(calculatedRadius, 2000));
 }
 
 // Generate chart data with fixed pattern (not random)
