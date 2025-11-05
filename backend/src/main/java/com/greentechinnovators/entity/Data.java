@@ -18,7 +18,6 @@ public class Data {
     private Integer co2;
     private Integer gas;
     private Double uv;
-    private Integer lumiere;
     private LocalDateTime timestamp;
     private String mac;
 
@@ -30,7 +29,6 @@ public class Data {
         this.co2 = co2;
         this.gas = gas;
         this.uv = uv;
-        this.lumiere = lumiere;
         this.timestamp = timestamp;
         this.mac = mac;
     }

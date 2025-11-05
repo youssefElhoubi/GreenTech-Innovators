@@ -10,6 +10,8 @@ import com.greentechinnovators.entity.City;
 import com.greentechinnovators.repository.CityRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+
 
 @Service
 public class StationsService {
@@ -88,6 +90,8 @@ public class StationsService {
         newStation.setName("Station " + mac.substring(Math.max(0, mac.length() - 4)));
         newStation.setLatitude(0.0);
         newStation.setLongitude(0.0);
+
+        newStation.setData(new ArrayList<>());
 
         Station saved = stationRepository.save(newStation);
         System.out.println(" Saved new station with MAC: " + mac);

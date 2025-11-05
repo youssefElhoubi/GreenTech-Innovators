@@ -32,9 +32,6 @@ public class DataDto {
     @DecimalMin(value = "0.0", message = "UV cannot be negative")
     private Double uv;
 
-    @NotNull(message = "Lumiere is required")
-    @PositiveOrZero(message = "Lumiere cannot be negative")
-    private Integer lumiere;
 
     private String mac;
 
@@ -46,7 +43,6 @@ public class DataDto {
         this.co2 = co2;
         this.gas = gas;
         this.uv = uv;
-        this.lumiere = lumiere;
         this.mac = mac;
     }
 
