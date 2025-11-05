@@ -21,7 +21,7 @@ Adafruit_BME280 bme;
 const char* ssid = "Youcode";
 const char* password = "Youcode@2024";
 
-const char* ws_server = "192.168.9.56";
+const char* ws_server = "192.168.9.66";
 const int ws_port = 8080;
 const char* ws_path = "/ws-native";
 

@@ -5,7 +5,7 @@ const API_URL = "http://localhost:8080/api/station";
 // POST: ajouter une nouvelle station
 export const addStation = async (station) => {
   try {
-    const response = await axios.post(API_URL, station);
+    const response = await axios.post("http://localhost:8080/api/station/esp32/saveMac", station);
     return response.data;
   } catch (error) {
     console.error("Erreur API POST:", error);

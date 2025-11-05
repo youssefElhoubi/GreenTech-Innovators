@@ -8,17 +8,17 @@ import Particles from './components/Particles';
 import { themes } from './data/themes';
 import { WebSocketProvider } from './context/WebSocketContext';
 
-console.log('App.jsx loaded');
+// console.log('App.jsx loaded');
 
 function App() {
-  console.log(' App component rendering...');
+  // console.log(' App component rendering...');
   
   const [activePage, setActivePage] = useState('dashboard');
   const [theme, setTheme] = useState('dark');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('App useEffect running');
+    // console.log('App useEffect running');
     try {
       const savedTheme = localStorage.getItem('selectedTheme') || 'dark';
       setTheme(savedTheme);
