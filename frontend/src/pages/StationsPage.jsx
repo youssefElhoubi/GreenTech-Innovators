@@ -143,7 +143,7 @@ function StationsPage() {
         console.error(error);
         Swal.fire({
           title: "❌ Failed!",
-          text: "Something went wrong. Please try again.",
+          text: `Something went wrong. Please try again.`,
           icon: "error",
           timer: 5000,
           timerProgressBar: true,
@@ -162,7 +162,7 @@ function StationsPage() {
           },
           html: `
     <div style="font-size:16px; font-weight:500;">
-      Operation failed! Closing in <b>5s</b>...
+      ${error.response.data} failed! Closing in <b>5s</b>...
     </div>
   `,
           customClass: {
@@ -197,16 +197,42 @@ function StationsPage() {
   };
 
   const handleDeleteStation = async (id) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette station ?')) {
-      try {
-        await deleteStation(id);
-        setStations(prev => prev.filter(s => s.id !== id));
-        alert('🗑️ Station supprimée avec succès !');
-      } catch (error) {
-        console.error("Erreur lors de la suppression :", error);
-        alert("❌ Impossible de supprimer la station. Réessayez !");
-      }
+    Swal.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#3085d6",
+  cancelButtonColor: "#d33",
+  confirmButtonText: "Yes, delete it!",
+}).then(async (result) => { // <-- make the callback async
+  if (result.isConfirmed) {
+    try {
+      await deleteStation(id); // wait for deletion
+      Swal.fire({
+        title: "✅ Deleted!",
+        text: "Your station has been successfully removed.",
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+        background: "#f0fff4",
+        color: "#155724",
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "❌ Failed!",
+        text: "Something went wrong while deleting the station.",
+        icon: "error",
+        timer: 4000,
+        showConfirmButton: false,
+        background: "#fff5f5",
+        color: "#721c24",
+      });
     }
+  }
+});
+
+    
   };
 
   const handleToggleStatus = (id) => {

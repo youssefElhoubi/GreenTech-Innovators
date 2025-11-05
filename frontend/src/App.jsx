@@ -13,7 +13,7 @@ import { WebSocketProvider } from './context/WebSocketContext';
 function App() {
   // console.log(' App component rendering...');
   
-  const [activePage, setActivePage] = useState('dashboard');
+  const [activePage, setActivePage] = useState( localStorage.getItem("page")||'dashboard');
   const [theme, setTheme] = useState('dark');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,6 +38,7 @@ function App() {
       console.error('Error saving theme to localStorage:', error);
     }
   };
+  
 
   if (isLoading) {
     return (
