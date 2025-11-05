@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface CityRepository extends MongoRepository<City, String> {
     Optional<City> findByName(String name);
+
+    
 }
