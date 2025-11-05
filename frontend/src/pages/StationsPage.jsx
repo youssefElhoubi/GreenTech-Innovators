@@ -110,8 +110,8 @@ const handleSubmit = async (e) => {
       alert(`✅ Station "${saved.name}" ajoutée avec succès !`);
     } catch (error) {
       console.error(error);
-      setStations(prev => prev.filter(s => s.id !== tempStation.id));
-      alert("❌ Erreur lors de l'ajout. Rollback appliqué.");
+      // setStations(prev => prev.filter(s => s.id !== tempStation.id));
+      
     }
   }
 
@@ -420,12 +420,6 @@ const handleDeleteStation = async (id) => {
                   </div>
                 </div>
 
-               <div className="station-sensors">
-  {station.sensors.map((value, i) => (
-  <span key={i} className="sensor-badge">{value}</span>
-))}
-
-</div>
 
 
                 <div className="station-actions">

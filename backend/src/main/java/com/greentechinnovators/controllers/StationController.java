@@ -22,6 +22,7 @@ public class StationController {
 
     @PostMapping
     public Station addStation(@Valid @RequestBody StationDto data) {
+
         return stationsService.add(data);
     }
 
@@ -53,6 +54,9 @@ public class StationController {
     @PostMapping("/esp32/saveMac")
     public ResponseEntity<String> saveMac(@RequestBody Map<String, String> body) {
         String mac = body.get("mac");
+        if (stationsService.findByAddressMAC(mac) != null) {
+            return ResponseEntity.ok("MAC already exists: " + mac);
+        }
         System.out.println(" New ESP32 connecting with MAC: " + mac);
 
         Station station = stationsService.saveMacAddress(mac);
