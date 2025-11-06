@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-
+import Swal from 'sweetalert2';
 function ReportsPage() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
