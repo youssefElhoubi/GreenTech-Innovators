@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import Map, { Source, Layer, Popup, NavigationControl } from 'react-map-gl/mapbox';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -37,10 +37,11 @@ function MapBounds({ cities, mapRef }) {
       
       if (bounds && !bounds.isEmpty()) {
         map.fitBounds(bounds, {
-          padding: { top: 50, bottom: 50, left: 50, right: 50 },
-          duration: 1000
+          padding: { top: 80, bottom: 80, left: 80, right: 80 }, // Plus de padding pour mieux voir
+          maxZoom: 6.5, // Ne pas zoomer trop près, garder une vue du Maroc
+          duration: 1500 // Animation plus lente pour une transition douce
         });
-        console.log('🗺️ [MapView] Vue ajustée pour afficher tous les cercles');
+        console.log('🗺️ [MapView] Vue ajustée pour afficher tout le Maroc avec toutes les villes');
       }
     } catch (error) {
       console.error('❌ [MapView] Erreur lors de l\'ajustement de la vue:', error);
@@ -50,8 +51,8 @@ function MapBounds({ cities, mapRef }) {
         if (map) {
           map.flyTo({
             center: [-7.0926, 31.7917],
-            zoom: 6,
-            duration: 1000
+            zoom: 5.8,
+            duration: 1500
           });
         }
       }
@@ -211,7 +212,7 @@ function CityCircles({ cities }) {
   );
 }
 
-function MapView({ cities, onCityClick }) {
+const MapView = forwardRef(({ cities, onCityClick }, ref) => {
   console.log('🗺️ [MapView] Render - Villes reçues:', cities);
   console.log('🗺️ [MapView] Nombre de villes:', cities?.length || 0);
   
@@ -219,10 +220,30 @@ function MapView({ cities, onCityClick }) {
   const [popupInfo, setPopupInfo] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [viewState, setViewState] = useState({
-    longitude: -7.0926,
-    latitude: 31.7917,
-    zoom: 5.5  // Zoom plus large pour voir tout le Maroc au démarrage
+    longitude: -7.0926, // Centre du Maroc (longitude)
+    latitude: 31.7917,  // Centre du Maroc (latitude)
+    zoom: 5.8  // Zoom pour voir tout le Maroc confortablement
   });
+
+  // Exposer la méthode flyToCity au parent via ref
+  useImperativeHandle(ref, () => ({
+    flyToCity: (city) => {
+      if (!city || !mapRef.current) return;
+      
+      console.log(`🗺️ [MapView] Zoom sur la ville: ${city.name}`);
+      
+      // Utiliser flyTo pour une animation fluide
+      const map = mapRef.current.getMap();
+      if (map) {
+        map.flyTo({
+          center: [city.lng, city.lat],
+          zoom: 9, // Zoom plus proche pour voir la ville
+          duration: 2000, // Animation de 2 secondes
+          essential: true
+        });
+      }
+    }
+  }), []);
 
   // Mémoriser les villes valides pour éviter les recalculs
   const validCities = useMemo(() => {
@@ -438,6 +459,8 @@ function MapView({ cities, onCityClick }) {
       </div>
     </div>
   );
-}
+});
+
+MapView.displayName = 'MapView';
 
 export default MapView;
