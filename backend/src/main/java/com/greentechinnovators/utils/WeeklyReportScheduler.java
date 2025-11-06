@@ -4,6 +4,8 @@ import com.greentechinnovators.service.WeeklyReportService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
 public class WeeklyReportScheduler {
 
@@ -13,8 +15,12 @@ public class WeeklyReportScheduler {
         this.weeklyReportService = weeklyReportService;
     }
 
-    @Scheduled(cron = "0 0 9 * * MON")
+    @Scheduled(cron = "0 * * * * *")
     public void run() {
         weeklyReportService.generateCsvReport();
+        Map<String, Object> reportData = weeklyReportService.generateReportData();
+        String aiAnalysis = weeklyReportService.analyzeReportWithAI(reportData);
+        reportData.put("aiAnalysis", aiAnalysis);
+        weeklyReportService.generatePdfReportWithAI(reportData);
     }
 }

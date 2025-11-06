@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-
+import Swal from 'sweetalert2';
 function ReportsPage() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
@@ -67,64 +67,202 @@ function ReportsPage() {
   }, [])
 
   const downloadReport = async (reportId, format) => {
-    try {
-      const report = reports.find((r) => r.id === reportId)
-      if (!report) {
-        alert("⚠️ Rapport non trouvé.")
-        return
-      }
-
-      if (format === "csv") {
-        const response = await fetch("http://localhost:8080/api/reports/download")
-        
-        if (!response.ok) {
-          throw new Error("Erreur lors du téléchargement CSV")
-        }
-
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `weekly-report-${report.date}.csv`
-        link.style.display = "none"
-        
-        document.body.appendChild(link)
-        link.click()
-        
-        setTimeout(() => {
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(url)
-        }, 100)
-      } else if (format === "pdf") {
-        // Call backend PDF download endpoint
-        const response = await fetch(
-          `http://localhost:8080/api/weekly-reports/${format}?reportId=${reportId}`
-        )
-        
-        if (!response.ok) {
-          throw new Error("Erreur lors du téléchargement PDF")
-        }
-
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `${report.title}.${format}`
-        link.style.display = "none"
-        
-        document.body.appendChild(link)
-        link.click()
-        
-        setTimeout(() => {
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(url)
-        }, 100)
-      }
-    } catch (err) {
-      console.error("Download error:", err)
-      alert("❌ Impossible de télécharger le rapport.")
+  try {
+    const report = reports.find((r) => r.id === reportId);
+    if (!report) {
+      return Swal.fire({
+        title: "⚠️ Rapport non trouvé",
+        icon: "warning",
+      });
     }
+
+    let endpoint = "";
+    let fileName = "";
+
+    if (format === "csv") {
+      endpoint = "http://localhost:8080/api/reports/download";
+      fileName = `weekly-report-${report.date}.csv`;
+    } else if (format === "pdf") {
+      endpoint = "http://localhost:8080/api/reports/pdf-ai-latest";
+      fileName = `weekly-report-ai-${report.date}.pdf`;
+    } else {
+      throw new Error("Format non supporté");
+    }
+
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      throw new Error(`Erreur lors du téléchargement ${format.toUpperCase()}`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+
+    Swal.fire({
+      title: "🎉 Success!",
+      text: "Rapport téléchargé avec succès!",
+      icon: "success",
+      timer: 5000,
+      timerProgressBar: true,
+      background: "#f0fff4",
+      color: "#155724",
+      iconColor: "#28a745",
+      showConfirmButton: false,
+      html: `
+        <div style="font-size:16px; font-weight:500;">
+          Operation successful! Closing in <b>5s</b>...
+        </div>
+      `,
+      customClass: {
+        popup: "animate__animated animate__fadeInDown",
+      },
+    });
+
+  } catch (err) {
+    console.error("Download error:", err);
+    Swal.fire({
+      title: "❌ Failed!",
+      text: `Impossible de télécharger le rapport. Essayez à nouveau.`,
+      icon: "error",
+      timer: 5000,
+      timerProgressBar: true,
+      background: "#fff5f5",
+      color: "#721c24",
+      iconColor: "#dc3545",
+      showConfirmButton: false,
+      html: `
+        <div style="font-size:16px; font-weight:500;">
+          Something went wrong. Closing in <b>5s</b>...
+        </div>
+      `,
+      customClass: {
+        popup: "animate__animated animate__shakeX",
+      },
+    });
   }
+};
+
+
+//   const downloadReport = async (reportId, format) => {
+//     try {
+//       const report = reports.find((r) => r.id === reportId)
+//       if (!report) {
+//         alert("⚠️ Rapport non trouvé.")
+//         return
+//       }
+
+//       if (format === "csv") {
+//         const response = await fetch("http://localhost:8080/api/reports/download")
+        
+//         if (!response.ok) {
+//           throw new Error("Erreur lors du téléchargement CSV")
+//         }
+
+//         const blob = await response.blob()
+//         const url = window.URL.createObjectURL(blob)
+//         const link = document.createElement("a")
+//         link.href = url
+//         link.download = `weekly-report-${report.date}.csv`
+//         link.style.display = "none"
+        
+//         document.body.appendChild(link)
+//         link.click()
+        
+//         setTimeout(() => {
+//           document.body.removeChild(link)
+//           window.URL.revokeObjectURL(url)
+//         }, 100)
+//       }else if (format === "pdf") {
+//   const response = await fetch(`http://localhost:8080/api/reports/pdf-ai`);
+  
+//   if (!response.ok) {
+//     throw new Error("Erreur lors du téléchargement PDF");
+//   }
+
+//   const blob = await response.blob();
+//   const url = window.URL.createObjectURL(blob);
+//   const link = document.createElement("a");
+//   link.href = url;
+//   link.download = `weekly-report-ai-${report.date}.pdf`;
+//   link.style.display = "none";
+
+//   document.body.appendChild(link);
+//   link.click();
+
+//   setTimeout(() => {
+//     document.body.removeChild(link);
+//     window.URL.revokeObjectURL(url);
+//   }, 100);
+//    Swal.fire({
+//           title: "🎉 Success!",
+//           text: " Rapport téléchargé avec succès!",
+//           icon: "success",
+//           timer: 5000,
+//           timerProgressBar: true,
+//           background: "#f0fff4",
+//           color: "#155724",
+//           iconColor: "#28a745",
+//           showConfirmButton: false,
+//           didOpen: () => {
+//             Swal.showLoading();
+//             const b = Swal.getPopup().querySelector("b");
+//             let timerInterval = setInterval(() => {
+//               if (Swal.getTimerLeft()) {
+//                 b.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}s`;
+//               }
+//             }, 1000);
+//           },
+//           html: `
+//     <div style="font-size:16px; font-weight:500;">
+//       Operation successful! Closing in <b>5s</b>...
+//     </div>
+//   `,
+//           customClass: {
+//             popup: "animate__animated animate__fadeInDown",
+//           },
+//         });
+// }
+//     } catch (err) {
+//       console.error("Download error:", err)
+//        Swal.fire({
+//                 title: "❌ Failed!",
+//                 text: `Something went wrong. Please try again.`,
+//                 icon: "error",
+//                 timer: 5000,
+//                 timerProgressBar: true,
+//                 background: "#fff5f5",
+//                 color: "#721c24",
+//                 iconColor: "#dc3545",
+//                 showConfirmButton: false,
+//                 didOpen: () => {
+//                   Swal.showLoading();
+//                   const b = Swal.getPopup().querySelector("b");
+//                   let timerInterval = setInterval(() => {
+//                     if (Swal.getTimerLeft()) {
+//                       b.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}s`;
+//                     }
+//                   }, 1000);
+//                 },
+//                 html: `
+//           <div style="font-size:16px; font-weight:500;">
+//             Impossible de télécharger le rapport. <b>5s</b>...
+//           </div>
+//         `,
+//                 customClass: {
+//                   popup: "animate__animated animate__shakeX",
+//                 },
+//               });
+//     }
+//   }
 
   if (error) {
     return (
