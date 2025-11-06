@@ -15,7 +15,7 @@ public class WeeklyReportScheduler {
         this.weeklyReportService = weeklyReportService;
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void run() {
         weeklyReportService.generateCsvReport();
         Map<String, Object> reportData = weeklyReportService.generateReportData();

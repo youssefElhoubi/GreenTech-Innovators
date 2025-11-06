@@ -141,55 +141,6 @@ function CityCircles({ cities }) {
     }
   }), []);
 
-  // Style pour les labels de ville
-  const labelStyle = useMemo(() => ({
-    id: 'city-labels',
-    type: 'symbol',
-    source: 'cities',
-    layout: {
-      'text-field': [
-        'format',
-        ['get', 'name'],
-        { 'font-scale': 1.1, 'text-font': ['literal', ['DIN Pro Bold', 'Arial Unicode MS Bold']] },
-        '\n',
-        {},
-        '🫁 AQI: ',
-        { 'font-scale': 0.9 },
-        ['get', 'aqi'],
-        { 'font-scale': 0.9 },
-        '\n',
-        {},
-        '🌡️ ',
-        { 'font-scale': 0.8 },
-        ['get', 'temp'],
-        { 'font-scale': 0.8 },
-        '°C | 💧 ',
-        { 'font-scale': 0.8 },
-        ['get', 'humidity'],
-        { 'font-scale': 0.8 },
-        '%',
-        { 'font-scale': 0.8 }
-      ],
-      'text-font': ['DIN Pro Regular', 'Arial Unicode MS Regular'],
-      'text-offset': [0, 0],
-      'text-anchor': 'center',
-      'text-size': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        5, 10,
-        8, 12,
-        10, 14
-      ]
-    },
-    paint: {
-      'text-color': '#ffffff',
-      'text-halo-color': '#000000',
-      'text-halo-width': 2,
-      'text-halo-blur': 1
-    }
-  }), []);
-
   // Log des données pour debug
   useEffect(() => {
     console.log('🎯 [CityCircles] Données GeoJSON:', circleData);
@@ -207,7 +158,7 @@ function CityCircles({ cities }) {
   return (
     <Source id="cities" type="geojson" data={circleData}>
       <Layer {...layerStyle} />
-      <Layer {...labelStyle} />
+     
     </Source>
   );
 }
