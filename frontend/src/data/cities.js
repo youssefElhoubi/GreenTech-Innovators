@@ -1,13 +1,4 @@
 export const cityCodes = {
-  'Casablanca': 'CAS',
-  'Rabat': 'RAB',
-  'Marrakech': 'MAR',
-  'Fès': 'FES',
-  'Tanger': 'TAN',
-  'Agadir': 'AGA',
-  'Meknès': 'MEK',
-  'Oujda': 'OUJ',
-  'Tétouan': 'TET',
   'Safi': 'SAF'
 };
 
@@ -29,15 +20,6 @@ function generateStations(cityName, count) {
 }
 
 export const cities = [
-  { name: 'Casablanca', lat: 33.5731, lng: -7.5898, aqi: 125, temp: 26, co2: 480, humidity: 72, uv: 7.2, light: 9200, pressure: 1012, gas: 42, stationCount: 5 },
-  { name: 'Rabat', lat: 34.0209, lng: -6.8416, aqi: 78, temp: 25, co2: 425, humidity: 65, uv: 6.5, light: 8800, pressure: 1013, gas: 38, stationCount: 4 },
-  { name: 'Marrakech', lat: 31.6295, lng: -7.9811, aqi: 142, temp: 32, co2: 510, humidity: 45, uv: 9.1, light: 11500, pressure: 1015, gas: 45, stationCount: 4 },
-  { name: 'Fès', lat: 34.0331, lng: -5.0003, aqi: 95, temp: 28, co2: 445, humidity: 58, uv: 7.8, light: 9600, pressure: 1014, gas: 40, stationCount: 3 },
-  { name: 'Tanger', lat: 35.7595, lng: -5.8340, aqi: 68, temp: 23, co2: 410, humidity: 70, uv: 5.5, light: 7200, pressure: 1011, gas: 35, stationCount: 3 },
-  { name: 'Agadir', lat: 30.4278, lng: -9.5981, aqi: 52, temp: 24, co2: 395, humidity: 68, uv: 8.2, light: 10200, pressure: 1010, gas: 33, stationCount: 2 },
-  { name: 'Meknès', lat: 33.8935, lng: -5.5473, aqi: 88, temp: 27, co2: 438, humidity: 60, uv: 7.0, light: 8900, pressure: 1013, gas: 39, stationCount: 2 },
-  { name: 'Oujda', lat: 34.6814, lng: -1.9086, aqi: 105, temp: 29, co2: 465, humidity: 52, uv: 8.5, light: 10800, pressure: 1016, gas: 41, stationCount: 2 },
-  { name: 'Tétouan', lat: 35.5889, lng: -5.3626, aqi: 72, temp: 24, co2: 418, humidity: 69, uv: 6.0, light: 7800, pressure: 1012, gas: 36, stationCount: 2 },
   { name: 'Safi', lat: 32.2994, lng: -9.2372, aqi: 81, temp: 25, co2: 430, humidity: 66, uv: 6.8, light: 8500, pressure: 1011, gas: 37, stationCount: 2 }
 ].map(city => ({
   ...city,

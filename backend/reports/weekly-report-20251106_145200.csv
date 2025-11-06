@@ -1,12 +1,18 @@
 ========================================
 WEEKLY ENVIRONMENT REPORT
 ========================================
+<<<<<<<< HEAD:backend/reports/weekly-report-20251106_145200.csv
 Report Date : 2025-11-06
 Generated On : 2025-11-06 14:52:00
+========
+Report Date : 2025-11-05
+Generated On : 2025-11-05 12:08:00
+>>>>>>>> main:backend/reports/weekly-report-20251105_120800.csv
 Total Cities : 1
 ========================================
 
 --- City #1 ---
+<<<<<<<< HEAD:backend/reports/weekly-report-20251106_145200.csv
 Date : 2025-11-06
 City : Safi
 AQI : 0,00
@@ -17,16 +23,33 @@ Temperature (°C) : 0,0
 Humidity (%) : 0,0
 Active Stations : 0
 Alert Level : GREEN
+========
+Date : 2025-11-05
+City : Safi
+AQI : 177,27
+Evolution : 0,0%
+Red Alerts : 0
+Yellow Warnings : 0
+Temperature (°C) : 27,7
+Humidity (%) : 45,8
+Active Stations : 1
+Alert Level : RED
+>>>>>>>> main:backend/reports/weekly-report-20251105_120800.csv
 
 ========================================
 SUMMARY
 ========================================
 Total Red Alerts : 0
 Total Yellow Warnings : 0
+<<<<<<<< HEAD:backend/reports/weekly-report-20251106_145200.csv
 Average AQI : 0,00
 
 ========================================
 AI ANALYSIS
 ========================================
 No AI analysis available
+========
+Average AQI : 177,27
+Report Status : Complete
+>>>>>>>> main:backend/reports/weekly-report-20251105_120800.csv
 ========================================

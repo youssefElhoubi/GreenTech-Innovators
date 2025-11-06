@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useContext, useEffect } from 'react';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import MapView from '../components/MapView';
@@ -7,13 +7,14 @@ import SensorChart from '../components/SensorChart';
 import { cities } from '../data/cities';
 import { sensorConfigs } from '../data/sensors';
 import { useWebSocket } from '../context/WebSocketContext';
+import { getAllStations } from '../api/stationsApi';
 
 function Dashboard() {
   const { latestData, isConnected } = useWebSocket();
 
   const [activeTab, setActiveTab] = useState('temp');
-  const [selectedCity, setSelectedCity] = useState('Casablanca');
-  const [sortedCities] = useState([...cities].sort((a, b) => b.aqi - a.aqi));
+  const [selectedCity, setSelectedCity] = useState('Safi');
+  const [sortedCities, setSortedCities] = useState([...cities].sort((a, b) => b.aqi - a.aqi));
 
   const handleCityClick = useCallback((city) => {
     const cityCardId = `city-${city.name.toLowerCase().replace(/\s+/g, '-')}`;
@@ -43,6 +44,232 @@ function Dashboard() {
   const handleMapCityClick = useCallback((map, city) => {
     map.setView([city.lat, city.lng], 8);
   }, []);
+
+  // Fonction pour calculer l'AQI basé sur co2, gas et uv
+  const calculateAQI = (co2, gas, uv) => {
+    if (co2 === undefined || co2 === null) co2 = 0;
+    if (gas === undefined || gas === null) gas = 0;
+    if (uv === undefined || uv === null) uv = 0;
+    return (co2 * 0.4) + (gas * 0.3) + (uv * 0.3);
+  };
+
+  // Fonction pour calculer la moyenne d'un tableau de valeurs
+  const calculateAverage = (values) => {
+    const validValues = values.filter(v => v !== undefined && v !== null && !isNaN(v));
+    if (validValues.length === 0) return 0;
+    return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
+  };
+
+  // Fetch toutes les stations et calculer les moyennes par ville
+  useEffect(() => {
+    const fetchAndProcessStations = async () => {
+      try {
+        console.log('🚀 [Dashboard] Début du fetch des stations...');
+        const stations = await getAllStations();
+        console.log('✅ [Dashboard] Stations récupérées:', stations);
+        console.log('📊 [Dashboard] Nombre de stations:', stations?.length || 0);
+        
+        // Vérifier que stations est un tableau valide
+        if (!stations || !Array.isArray(stations)) {
+          console.warn("⚠️ [Dashboard] getAllStations n'a pas retourné un tableau valide:", stations);
+          return; // Garder les villes par défaut
+        }
+        
+        // Grouper les stations par ville
+        const stationsByCity = {};
+        let stationsWithCity = 0;
+        let stationsWithoutCity = 0;
+        let totalDataPoints = 0;
+        
+        stations.forEach(station => {
+          console.log('🔍 [Dashboard] Traitement station:', {
+            name: station.name,
+            hasCity: !!station.city,
+            cityName: station.city?.name,
+            hasData: !!(station.data && Array.isArray(station.data) && station.data.length > 0),
+            dataCount: station.data?.length || 0
+          });
+          
+          // Si la station n'a pas de ville, on peut essayer de la grouper par coordonnées ou la skip
+          // Pour l'instant, on skip les stations sans ville
+          if (!station.city || !station.city.name) {
+            console.warn("⚠️ [Dashboard] Station sans ville:", station.name);
+            stationsWithoutCity++;
+            return;
+          }
+          
+          stationsWithCity++;
+          const cityName = station.city.name;
+          
+          if (!stationsByCity[cityName]) {
+            stationsByCity[cityName] = {
+              name: cityName,
+              stations: [],
+              allData: [] // Toutes les données de toutes les stations de cette ville
+            };
+            console.log('🏙️ [Dashboard] Nouvelle ville créée:', cityName);
+          }
+          
+          // Ajouter la station
+          stationsByCity[cityName].stations.push(station);
+          
+          // Collecter toutes les données de cette station
+          if (station.data && Array.isArray(station.data) && station.data.length > 0) {
+            const dataCount = station.data.length;
+            totalDataPoints += dataCount;
+            station.data.forEach(dataPoint => {
+              if (dataPoint) {
+                stationsByCity[cityName].allData.push(dataPoint);
+              }
+            });
+            console.log(`📈 [Dashboard] Ajouté ${dataCount} points de données pour ${cityName} depuis ${station.name}`);
+          }
+        });
+        
+        console.log('📊 [Dashboard] Résumé du groupement:', {
+          stationsAvecVille: stationsWithCity,
+          stationsSansVille: stationsWithoutCity,
+          totalDataPoints: totalDataPoints,
+          villesUniques: Object.keys(stationsByCity).length,
+          villes: Object.keys(stationsByCity)
+        });
+        
+        // Calculer les moyennes pour chaque ville
+        console.log('🧮 [Dashboard] Début du calcul des moyennes par ville...');
+        const citiesWithAverages = Object.values(stationsByCity).map(cityGroup => {
+          const { allData = [], stations: cityStations = [] } = cityGroup;
+          
+          // S'assurer que allData et cityStations sont des tableaux
+          const safeAllData = Array.isArray(allData) ? allData : [];
+          const safeCityStations = Array.isArray(cityStations) ? cityStations : [];
+          
+          console.log(`🏙️ [Dashboard] Calcul pour ${cityGroup.name}:`, {
+            stationsCount: safeCityStations.length,
+            dataPointsCount: safeAllData.length
+          });
+          
+          // Calculer les coordonnées (moyenne des stations de la ville)
+          const validLats = safeCityStations.filter(s => s && s.latitude && s.latitude !== 0).map(s => s.latitude);
+          const validLngs = safeCityStations.filter(s => s && s.longitude && s.longitude !== 0).map(s => s.longitude);
+          const lat = validLats.length > 0 ? calculateAverage(validLats) : 31.7917;
+          const lng = validLngs.length > 0 ? calculateAverage(validLngs) : -7.0926;
+          
+          console.log(`📍 [Dashboard] Coordonnées pour ${cityGroup.name}:`, { lat, lng });
+          
+          if (safeAllData.length === 0) {
+            // Si pas de données, utiliser les valeurs par défaut
+            console.log(`⚠️ [Dashboard] ${cityGroup.name} n'a pas de données de capteurs`);
+            return {
+              name: cityGroup.name,
+              lat: lat,
+              lng: lng,
+              aqi: 0,
+              temp: 0,
+              humidity: 0,
+              co2: 0,
+              uv: 0,
+              light: 0,
+              pressure: 0,
+              gas: 0,
+              stationCount: safeCityStations.length,
+              activeStations: safeCityStations.filter(s => s && s.data && Array.isArray(s.data) && s.data.length > 0).length,
+              stations: safeCityStations.map(s => ({
+                id: s && (s.id || s.name),
+                status: (s && s.data && Array.isArray(s.data) && s.data.length > 0) ? 'active' : 'offline'
+              }))
+            };
+          }
+          
+          // Calculer les moyennes
+          const avgTemp = calculateAverage(safeAllData.map(d => d && d.temp));
+          const avgHumidity = calculateAverage(safeAllData.map(d => d && d.humidity));
+          const avgCo2 = calculateAverage(safeAllData.map(d => d && d.co2));
+          const avgGas = calculateAverage(safeAllData.map(d => d && d.gas));
+          const avgUv = calculateAverage(safeAllData.map(d => d && d.uv));
+          const avgLight = calculateAverage(safeAllData.map(d => d && (d.lumiere || d.light)));
+          const avgPressure = calculateAverage(safeAllData.map(d => d && (d.pression || d.pressure)));
+          
+          // Calculer l'AQI
+          const aqi = calculateAQI(avgCo2, avgGas, avgUv);
+          
+          // Compter les stations actives (celles avec des données)
+          const activeStations = safeCityStations.filter(s => s && s.data && Array.isArray(s.data) && s.data.length > 0).length;
+          
+          const cityResult = {
+            name: cityGroup.name,
+            lat: lat,
+            lng: lng,
+            aqi: Math.round(aqi),
+            temp: Math.round(avgTemp * 10) / 10,
+            humidity: Math.round(avgHumidity * 10) / 10,
+            co2: Math.round(avgCo2),
+            uv: Math.round(avgUv * 10) / 10,
+            light: Math.round(avgLight),
+            pressure: Math.round(avgPressure),
+            gas: Math.round(avgGas),
+            stationCount: safeCityStations.length,
+            activeStations: activeStations,
+            stations: safeCityStations.map(s => ({
+              id: s && (s.id || s.name),
+              status: (s && s.data && Array.isArray(s.data) && s.data.length > 0) ? 'active' : 'offline'
+            }))
+          };
+          
+          console.log(`✅ [Dashboard] Moyennes calculées pour ${cityGroup.name}:`, {
+            aqi: cityResult.aqi,
+            temp: cityResult.temp,
+            humidity: cityResult.humidity,
+            co2: cityResult.co2,
+            uv: cityResult.uv,
+            gas: cityResult.gas,
+            stations: cityResult.stationCount,
+            activeStations: cityResult.activeStations
+          });
+          
+          return cityResult;
+        });
+        
+        // Trier par AQI décroissant
+        const sorted = citiesWithAverages.sort((a, b) => b.aqi - a.aqi);
+        
+        console.log('🎯 [Dashboard] Villes finales calculées:', sorted);
+        console.log('📊 [Dashboard] Nombre de villes:', sorted.length);
+        console.log('🏆 [Dashboard] Ville avec le plus haut AQI:', sorted[0]?.name, 'AQI:', sorted[0]?.aqi);
+        
+        setSortedCities(sorted);
+        
+        console.log('✅ [Dashboard] État mis à jour avec', sorted.length, 'villes');
+        
+      } catch (error) {
+        console.error("❌ [Dashboard] Erreur lors du chargement des stations:", error);
+        console.error("❌ [Dashboard] Stack trace:", error.stack);
+        // En cas d'erreur, garder les villes par défaut
+        // Ne pas modifier sortedCities, il garde sa valeur initiale
+      }
+    };
+    
+    fetchAndProcessStations();
+  }, []);
+
+  // Log pour vérifier l'état actuel des villes
+  useEffect(() => {
+    console.log('🔄 [Dashboard] Render - Villes actuellement affichées:', sortedCities);
+    console.log('🔄 [Dashboard] Nombre de villes dans sortedCities:', sortedCities?.length || 0);
+    if (sortedCities && sortedCities.length > 0) {
+      console.log('🔄 [Dashboard] Première ville:', sortedCities[0]);
+      console.log('📤 [Dashboard] Passage des villes à MapView:', {
+        count: sortedCities.length,
+        cities: sortedCities.map(c => ({ 
+          name: c.name, 
+          aqi: c.aqi, 
+          stations: c.stationCount,
+          activeStations: c.activeStations,
+          lat: c.lat,
+          lng: c.lng
+        }))
+      });
+    }
+  }, [sortedCities]);
 
   return (
     <div className="page-content active">
@@ -154,7 +381,7 @@ function Dashboard() {
             <i className="fas fa-city"></i> Villes en Direct
           </h2>
           <div className="cities-grid">
-            {sortedCities.map((city) => (
+            {sortedCities && Array.isArray(sortedCities) && sortedCities.map((city) => (
               <CityCard
                 key={city.name}
                 city={city}

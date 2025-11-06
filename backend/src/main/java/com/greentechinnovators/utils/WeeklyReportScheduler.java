@@ -15,10 +15,8 @@ public class WeeklyReportScheduler {
         this.weeklyReportService = weeklyReportService;
     }
 
-    @Scheduled(cron = "0 * * * * SUN")
-    public void runWeeklyReport() {
-        System.out.println("🟢 Génération automatique du rapport hebdomadaire...");
-
+    @Scheduled(cron = "0 0 9 * * MON")
+    public void run() {
         weeklyReportService.generateCsvReport();
 
         Map<String, Object> reportData = weeklyReportService.generateReportData();

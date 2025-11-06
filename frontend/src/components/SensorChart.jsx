@@ -20,7 +20,7 @@ function SensorChart({ sensorType, cityName, maxPoints = 30 }) {
 
     // Create chart only once
     if (!chartInstanceRef.current) {
-      console.log('[SensorChart] Creating new chart for:', sensorType);
+      // console.log('[SensorChart] Creating new chart for:', sensorType);
       chartInstanceRef.current = new Chart(ctx, {
         type: 'line',
         data: {
@@ -100,7 +100,7 @@ function SensorChart({ sensorType, cityName, maxPoints = 30 }) {
       return value !== undefined && value !== null ? value : 0;
     });
 
-    console.log(`[SensorChart] Updating ${sensorType} chart with ${chartData.length} points`);
+    // console.log(`[SensorChart] Updating ${sensorType} chart with ${chartData.length} points`);
 
     // Update chart data and configuration
     chart.data.labels = labels;
@@ -119,7 +119,7 @@ function SensorChart({ sensorType, cityName, maxPoints = 30 }) {
   useEffect(() => {
     return () => {
       if (chartInstanceRef.current) {
-        console.log('[SensorChart] Destroying chart:', sensorType);
+        // console.log('[SensorChart] Destroying chart:', sensorType);
         chartInstanceRef.current.destroy();
         chartInstanceRef.current = null;
       }
