@@ -20,16 +20,34 @@ public class WeeklyReportController {
         this.reportService = reportService;
     }
 
-    @GetMapping("/weekly")
-    public ResponseEntity<String> generateWeeklyReport() {
-        Path path = reportService.generateCsvReport();
+//    @GetMapping("/weekly")
+//    public ResponseEntity<String> generateWeeklyReport() {
+//        Path path = reportService.generateCsvReport();
+//
+//        if (path == null) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("❌ Échec de la génération du rapport.");
+//        }
+//
+//        return ResponseEntity.ok("✅ Rapport généré avec succès : " + path.toAbsolutePath());
+//    }
+@GetMapping("/weekly")
+public ResponseEntity<String> generateWeeklyReport() {
+    Path path = reportService.generateCsvReport();
 
-        if (path == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("❌ Échec de la génération du rapport.");
-        }
+    if (path == null) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("❌ Échec de la génération du rapport.");
+    }
 
-        return ResponseEntity.ok("✅ Rapport généré avec succès : " + path.toAbsolutePath());
+    return ResponseEntity.ok("✅ Rapport généré avec succès : " + path.toAbsolutePath());
+}
+
+    @GetMapping("/analyze")
+    public ResponseEntity<String> analyzeReport() {
+        Map<String, Object> report = reportService.generateReportData();
+        String aiAnalysis = reportService.analyzeReportWithAI(report);
+        return ResponseEntity.ok(aiAnalysis);
     }
 
     @GetMapping("/download")
@@ -82,6 +100,37 @@ public class WeeklyReportController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Erreur lors de la récupération des données : " + e.getMessage()));
+        }
+    }
+
+
+    @GetMapping("/pdf-ai")
+    public ResponseEntity<byte[]> generatePdfWithAI() {
+        try {
+            // 1️⃣ Générer les données + AI analysis
+            Map<String, Object> reportData = reportService.generateReportData();
+            String aiAnalysis = reportService.analyzeReportWithAI(reportData);
+            reportData.put("aiAnalysis", aiAnalysis);
+
+            // 2️⃣ Générer le PDF
+            Path pdfPath = reportService.generatePdfReportWithAI(reportData);
+            if (pdfPath == null || !Files.exists(pdfPath)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(null);
+            }
+
+            // 3️⃣ Lire le PDF en byte[]
+            byte[] fileContent = Files.readAllBytes(pdfPath);
+
+            // 4️⃣ Retourner le PDF en réponse HTTP
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=" + pdfPath.getFileName())
+                    .body(fileContent);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.greentechinnovators.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.greentechinnovators.entity.Data;
 import com.greentechinnovators.entity.Prediction;
 import com.greentechinnovators.entity.Station;
@@ -7,33 +9,34 @@ import com.greentechinnovators.repository.DataRepository;
 import com.greentechinnovators.repository.PredictionRepository;
 import com.greentechinnovators.repository.StationRepository;
 import org.springframework.stereotype.Service;
-// Pour la manipulation de fichiers
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-// Pour l'encodage UTF-8
 import java.nio.charset.StandardCharsets;
 
-// Pour les chemins et création de dossiers
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-// Pour les dates
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 // Pour les collections
 import java.util.List;
 import java.util.Map;
-import java.io.FileWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 import java.util.*;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+
+import com.itextpdf.layout.element.Table;
 
 @Service
 public class WeeklyReportService {
@@ -41,13 +44,14 @@ public class WeeklyReportService {
     private final DataRepository dataRepository;
     private final PredictionRepository predictionRepository;
     private final StationRepository stationRepository;
-
+    private final VertexAiService vertexAiService;
     public WeeklyReportService(DataRepository dataRepository,
                                PredictionRepository predictionRepository,
-                               StationRepository stationRepository) {
+                               StationRepository stationRepository, VertexAiService vertexAiService) {
         this.dataRepository = dataRepository;
         this.predictionRepository = predictionRepository;
         this.stationRepository = stationRepository;
+        this.vertexAiService = vertexAiService;
     }
 
     // Génère les données du rapport
@@ -118,7 +122,11 @@ public class WeeklyReportService {
             int avertissementsJaunes = (int) cityPred.stream().filter(p -> p.getPredictionStatus() != null && p.getPredictionStatus().name().equals("YELLOW")).count();
 
             int stationsActive = (int) stations.stream()
-                    .filter(s -> s.getCity() != null && s.getCity().getName().equals(city) && s.getData() != null && !s.getData().isEmpty())
+                    .filter(s -> s.getCity() != null
+                            && s.getCity().getName() != null
+                            && s.getCity().getName().equals(city)
+                            && s.getData() != null
+                            && !s.getData().isEmpty())
                     .count();
 
             String alertColor = aqiThisWeek >= 100 ? "RED" : aqiThisWeek >= 50 ? "YELLOW" : "GREEN";
@@ -141,13 +149,15 @@ public class WeeklyReportService {
         report.put("date", now.toLocalDate().toString());
         report.put("cities", cities);
 
+//        String aiAnalysisText = analyzeReportWithAI(report);
+//        report.put("aiAnalysis", aiAnalysisText);
+
         return report;
     }
 
 
     public Path generateCsvReport() {
         try {
-            // Récupération et validation des données
             Map<String, Object> reportData = generateReportData();
             if (reportData == null || reportData.isEmpty()) {
                 System.err.println("⚠️ Aucune donnée de rapport disponible");
@@ -160,16 +170,14 @@ public class WeeklyReportService {
                 return null;
             }
 
-            // Création du fichier CSV avec timestamp
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             Path reportPath = Path.of("reports/weekly-report-" + timestamp + ".csv");
             Files.createDirectories(reportPath.getParent());
 
-            // Génération du CSV avec encodage UTF-8
             try (BufferedWriter writer = new BufferedWriter(
                     new OutputStreamWriter(new FileOutputStream(reportPath.toFile()), StandardCharsets.UTF_8))) {
 
-                // ===== EN-TÊTE DU RAPPORT =====
+                // ===== EN-TÊTE =====
                 writer.write("========================================\n");
                 writer.write("WEEKLY ENVIRONMENT REPORT\n");
                 writer.write("========================================\n");
@@ -178,7 +186,7 @@ public class WeeklyReportService {
                 writer.write("Total Cities : " + cities.size() + "\n");
                 writer.write("========================================\n\n");
 
-                // ===== DONNÉES PAR VILLE (ligne par ligne) =====
+                // ===== DONNÉES PAR VILLE =====
                 int cityNumber = 1;
                 for (Map<String, Object> cityData : cities) {
                     writer.write("--- City #" + cityNumber + " ---\n");
@@ -192,8 +200,7 @@ public class WeeklyReportService {
                     writer.write("Humidity (%) : " + formatNumber(cityData.get("humidityMoyen"), 1) + "\n");
                     writer.write("Active Stations : " + formatInteger(cityData.get("stationsActives")) + "\n");
                     writer.write("Alert Level : " + getString(cityData, "alertColor") + "\n");
-                    writer.write("\n"); // Ligne vide entre chaque ville
-
+                    writer.write("\n");
                     cityNumber++;
                 }
 
@@ -204,7 +211,13 @@ public class WeeklyReportService {
                 writer.write("Total Red Alerts : " + calculateTotalRedAlerts(cities) + "\n");
                 writer.write("Total Yellow Warnings : " + calculateTotalYellowWarnings(cities) + "\n");
                 writer.write("Average AQI : " + String.format("%.2f", calculateAverageAQI(cities)) + "\n");
-                writer.write("Report Status : Complete\n");
+
+                // ===== AI ANALYSIS =====
+                String aiAnalysis = reportData.get("aiAnalysis") != null ? reportData.get("aiAnalysis").toString() : "No AI analysis available";
+                writer.write("\n========================================\n");
+                writer.write("AI ANALYSIS\n");
+                writer.write("========================================\n");
+                writer.write(aiAnalysis + "\n");
                 writer.write("========================================\n");
             }
 
@@ -221,8 +234,6 @@ public class WeeklyReportService {
             return null;
         }
     }
-
-// ===== MÉTHODES UTILITAIRES (inchangées) =====
 
     private String formatNumber(Object value, int decimals) {
         if (value == null) {
@@ -272,5 +283,117 @@ public class WeeklyReportService {
                 .average()
                 .orElse(0.0);
     }
+
+
+    public Path generatePdfReportWithAI(Map<String, Object> reportData) {
+        try {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            Path pdfPath = Path.of("reports/weekly-report-ai-" + timestamp + ".pdf");
+            Files.createDirectories(pdfPath.getParent());
+
+            PdfWriter writer = new PdfWriter(pdfPath.toFile());
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+
+            PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+            document.setFont(font);
+
+            // ===== Title =====
+            document.add(new Paragraph("WEEKLY ENVIRONMENT REPORT WITH AI ANALYSIS")
+                    .setBold()
+                    .setFontSize(18));
+            document.add(new Paragraph("Report Date: " + reportData.get("date")));
+            document.add(new Paragraph("Generated On: " +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+            document.add(new Paragraph("\n"));
+
+            // ===== Table for Cities =====
+            List<Map<String, Object>> cities = (List<Map<String, Object>>) reportData.get("cities");
+            if (cities != null && !cities.isEmpty()) {
+                float[] columnWidths = {100f, 50f, 50f, 50f, 50f, 50f, 50f, 50f, 50f};
+                Table table = new Table(columnWidths);
+                table.addHeaderCell("City");
+                table.addHeaderCell("AQI");
+                table.addHeaderCell("Evolution");
+                table.addHeaderCell("Red Alerts");
+                table.addHeaderCell("Yellow Warnings");
+                table.addHeaderCell("Temp (°C)");
+                table.addHeaderCell("Humidity (%)");
+                table.addHeaderCell("Active Stations");
+                table.addHeaderCell("Alert Level");
+
+                for (Map<String, Object> city : cities) {
+                    table.addCell(getString(city, "name"));
+                    table.addCell(formatNumber(city.get("aqiMoyen"), 2));
+                    table.addCell(getString(city, "evolution"));
+                    table.addCell(formatInteger(city.get("alertesRouges")));
+                    table.addCell(formatInteger(city.get("avertissementsJaunes")));
+                    table.addCell(formatNumber(city.get("tempMoyen"), 1));
+                    table.addCell(formatNumber(city.get("humidityMoyen"), 1));
+                    table.addCell(formatInteger(city.get("stationsActives")));
+                    table.addCell(getString(city, "alertColor"));
+                }
+
+                document.add(table);
+                document.add(new Paragraph("\n"));
+            }
+
+            // ===== AI Analysis =====
+            String aiAnalysis = reportData.get("aiAnalysis") != null ? reportData.get("aiAnalysis").toString() : "No AI analysis available";
+            String[] parts = aiAnalysis.split("solution:", 2);
+            String problemText = parts.length > 0 ? parts[0].replace("problem:", "").trim() : "";
+            String solutionText = parts.length > 1 ? parts[1].trim() : "";
+
+            document.add(new Paragraph("AI ANALYSIS").setBold().setFontSize(14));
+            document.add(new Paragraph("Problem:").setBold());
+            document.add(new Paragraph(problemText).setFontSize(12));
+            document.add(new Paragraph("\nSolution:").setBold());
+            document.add(new Paragraph(solutionText).setFontSize(12));
+            document.add(new Paragraph("\n"));
+
+            // ===== Full Report Data (JSON) =====
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            String jsonReport = mapper.writeValueAsString(reportData);
+
+
+
+            document.close();
+            return pdfPath;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String analyzeReportWithAI(Map<String, Object> reportData) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonReport = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(reportData);
+
+            String systemMessage = """
+        You are an environmental AI analyst.
+        Analyze weekly pollution, temperature, and humidity data from various cities.
+        Provide your answer in this format:
+        problem: { summarize key environmental issues found }
+        solution: { suggest realistic actions to improve the situation }
+        """;
+
+            String userMessage = "Here is this week's report data:\n" + jsonReport;
+
+            StringBuilder aiResponse = new StringBuilder();
+
+            vertexAiService.askStream(systemMessage, userMessage, partial -> {
+                aiResponse.append(partial);
+            });
+
+            return aiResponse.toString();
+
+        } catch (Exception e) {
+            return "AI analysis failed: " + e.getMessage();
+        }
+    }
+
 
 }
