@@ -95,31 +95,30 @@ function ReportsPage() {
           document.body.removeChild(link)
           window.URL.revokeObjectURL(url)
         }, 100)
-      } else if (format === "pdf") {
-        // Call backend PDF download endpoint
-        const response = await fetch(
-          `http://localhost:8080/api/weekly-reports/${format}?reportId=${reportId}`
-        )
-        
-        if (!response.ok) {
-          throw new Error("Erreur lors du téléchargement PDF")
-        }
+      }else if (format === "pdf") {
+  // Call backend PDF download endpoint for AI report
+  const response = await fetch(`http://localhost:8080/api/reports/pdf-ai`);
+  
+  if (!response.ok) {
+    throw new Error("Erreur lors du téléchargement PDF");
+  }
 
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `${report.title}.${format}`
-        link.style.display = "none"
-        
-        document.body.appendChild(link)
-        link.click()
-        
-        setTimeout(() => {
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(url)
-        }, 100)
-      }
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `weekly-report-ai-${report.date}.pdf`;
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+
+  setTimeout(() => {
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }, 100);
+}
+      alert("✅ Rapport téléchargé avec succès.")
     } catch (err) {
       console.error("Download error:", err)
       alert("❌ Impossible de télécharger le rapport.")

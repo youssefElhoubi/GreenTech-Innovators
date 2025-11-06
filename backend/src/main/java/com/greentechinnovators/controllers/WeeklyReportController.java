@@ -20,28 +20,36 @@ public class WeeklyReportController {
         this.reportService = reportService;
     }
 
-//    @GetMapping("/weekly")
-//    public ResponseEntity<String> generateWeeklyReport() {
-//        Path path = reportService.generateCsvReport();
-//
-//        if (path == null) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body("❌ Échec de la génération du rapport.");
-//        }
-//
-//        return ResponseEntity.ok("✅ Rapport généré avec succès : " + path.toAbsolutePath());
-//    }
-@GetMapping("/weekly")
-public ResponseEntity<String> generateWeeklyReport() {
-    Path path = reportService.generateCsvReport();
+    @GetMapping("/weekly")
+    public ResponseEntity<String> generateWeeklyReports() {
+        try {
+            Path csvPath = reportService.generateCsvReport();
+            if (csvPath == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("❌ Échec de la génération du CSV.");
+            }
 
-    if (path == null) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("❌ Échec de la génération du rapport.");
+            Map<String, Object> reportData = reportService.generateReportData();
+            Path pdfPath = reportService.generatePdfReportWithAI(reportData);
+            if (pdfPath == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("❌ Échec de la génération du PDF.");
+            }
+
+            String message = String.format(
+                    "✅ Rapports générés avec succès : CSV -> %s, PDF -> %s",
+                    csvPath.toAbsolutePath(), pdfPath.toAbsolutePath()
+            );
+
+            return ResponseEntity.ok(message);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("⚠️ Erreur lors de la génération des rapports : " + e.getMessage());
+        }
     }
 
-    return ResponseEntity.ok("✅ Rapport généré avec succès : " + path.toAbsolutePath());
-}
 
     @GetMapping("/analyze")
     public ResponseEntity<String> analyzeReport() {

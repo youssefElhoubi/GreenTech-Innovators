@@ -149,8 +149,7 @@ public class WeeklyReportService {
         report.put("date", now.toLocalDate().toString());
         report.put("cities", cities);
 
-//        String aiAnalysisText = analyzeReportWithAI(report);
-//        report.put("aiAnalysis", aiAnalysisText);
+
 
         return report;
     }
