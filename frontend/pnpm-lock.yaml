@@ -38,6 +38,12 @@ importers:
       sockjs-client:
         specifier: ^1.6.1
         version: 1.6.1
+      sweetalert2:
+        specifier: ^11.26.3
+        version: 11.26.3
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
     devDependencies:
       '@vitejs/plugin-react':
         specifier: ^4.3.1
@@ -891,6 +897,9 @@ packages:
   supercluster@8.0.1:
     resolution: {integrity: sha512-IiOea5kJ9iqzD2t7QJq/cREyLHTtSmUT6gQsweojg9WH2sYJqZK9SswTu6jrscO6D1G5v5vYZ9ru/eq85lXeZQ==}
 
+  sweetalert2@11.26.3:
+    resolution: {integrity: sha512-VU0hGw/WfI9h7Mh+SCsDlWgtxDwWZ6ccqS7QcO8zEeWnwplN1GptcLstq76OluUBSLUza6ldvKd3558OhjpJ9A==}
+
   tinyqueue@1.2.3:
     resolution: {integrity: sha512-Qz9RgWuO9l8lT+Y9xvbzhPT2efIUIFd69N7eF7tJ9lnQl0iLj1M7peK7IoUGZL9DJHw9XftqLreccfxcQgYLxA==}
 
@@ -915,6 +924,10 @@ packages:
 
   url-parse@1.5.10:
     resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
+
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
 
   vite@5.4.21:
     resolution: {integrity: sha512-o5a9xKjbtuhY6Bi5S3+HvbRERmouabWbyUcpXXUA1u+GNUKoROi9byOJ8M0nHbHYHkYICiMlqxkg1KkYmm25Sw==}
@@ -1744,6 +1757,8 @@ snapshots:
     dependencies:
       kdbush: 4.0.2
 
+  sweetalert2@11.26.3: {}
+
   tinyqueue@1.2.3: {}
 
   tinyqueue@3.0.0: {}
@@ -1771,6 +1786,8 @@ snapshots:
     dependencies:
       querystringify: 2.2.0
       requires-port: 1.0.0
+
+  uuid@13.0.0: {}
 
   vite@5.4.21:
     dependencies:

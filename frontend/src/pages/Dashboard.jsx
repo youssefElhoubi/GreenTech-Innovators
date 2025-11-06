@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useContext, useEffect } from 'react';
+import React, { useState, useCallback, useContext, useEffect, useRef } from 'react';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import MapView from '../components/MapView';
 import CityCard from '../components/CityCard';
 import SensorChart from '../components/SensorChart';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { cities } from '../data/cities';
 import { sensorConfigs } from '../data/sensors';
 import { useWebSocket } from '../context/WebSocketContext';
@@ -11,10 +12,12 @@ import { getAllStations } from '../api/stationsApi';
 
 function Dashboard() {
   const { latestData, isConnected } = useWebSocket();
+  const mapViewRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState('temp');
   const [selectedCity, setSelectedCity] = useState('Safi');
   const [sortedCities, setSortedCities] = useState([...cities].sort((a, b) => b.aqi - a.aqi));
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleCityClick = useCallback((city) => {
     const cityCardId = `city-${city.name.toLowerCase().replace(/\s+/g, '-')}`;
@@ -41,8 +44,11 @@ function Dashboard() {
     }
   }, []);
 
-  const handleMapCityClick = useCallback((map, city) => {
-    map.setView([city.lat, city.lng], 8);
+  const handleMapCityClick = useCallback((city) => {
+    if (mapViewRef.current && city) {
+      console.log(`🎯 [Dashboard] Clic sur la ville: ${city.name}`);
+      mapViewRef.current.flyToCity(city);
+    }
   }, []);
 
   // Fonction pour calculer l'AQI basé sur co2, gas et uv
@@ -63,6 +69,7 @@ function Dashboard() {
   // Fetch toutes les stations et calculer les moyennes par ville
   useEffect(() => {
     const fetchAndProcessStations = async () => {
+      setIsLoading(true);
       try {
         console.log('🚀 [Dashboard] Début du fetch des stations...');
         const stations = await getAllStations();
@@ -245,6 +252,9 @@ function Dashboard() {
         console.error("❌ [Dashboard] Stack trace:", error.stack);
         // En cas d'erreur, garder les villes par défaut
         // Ne pas modifier sortedCities, il garde sa valeur initiale
+      } finally {
+        // Toujours désactiver le loading, même en cas d'erreur
+        setIsLoading(false);
       }
     };
     
@@ -270,6 +280,11 @@ function Dashboard() {
       });
     }
   }, [sortedCities]);
+
+  // Si en cours de chargement, afficher le spinner
+  if (isLoading) {
+    return <LoadingSpinner fullScreen message="Chargement des stations et des données..." />;
+  }
 
   return (
     <div className="page-content active">
@@ -374,7 +389,7 @@ function Dashboard() {
       </div>
 
       <div className="main-grid">
-        <MapView cities={sortedCities} onCityClick={handleCityClick} />
+        <MapView ref={mapViewRef} cities={sortedCities} onCityClick={handleCityClick} />
 
         <div className="section-card">
           <h2 className="section-title">
@@ -385,7 +400,7 @@ function Dashboard() {
               <CityCard
                 key={city.name}
                 city={city}
-                onClick={() => handleMapCityClick(null, city)}
+                onClick={() => handleMapCityClick(city)}
               />
             ))}
           </div>
