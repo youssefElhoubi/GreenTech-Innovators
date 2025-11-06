@@ -13,7 +13,7 @@ function Dashboard() {
   const { latestData, isConnected } = useWebSocket();
 
   const [activeTab, setActiveTab] = useState('temp');
-  const [selectedCity, setSelectedCity] = useState('Casablanca');
+  const [selectedCity, setSelectedCity] = useState('Safi');
   const [sortedCities, setSortedCities] = useState([...cities].sort((a, b) => b.aqi - a.aqi));
 
   const handleCityClick = useCallback((city) => {

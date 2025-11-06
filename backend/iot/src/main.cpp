@@ -18,10 +18,10 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // === CREATION DES OBJETS CAPTEURS ===
 Adafruit_BME280 bme;
 
-const char* ssid = "Youcode";
-const char* password = "Youcode@2024";
+const char* ssid = "Glass house salon";
+const char* password = "12345678";
 
-const char* ws_server = "192.168.9.66";
+const char* ws_server = "192.168.0.158";
 const int ws_port = 8080;
 const char* ws_path = "/ws-native";
 
@@ -349,7 +349,6 @@ void loop() {
     json["co2"] = (int)co2;
     json["gas"] = (int)gas;
     json["uv"] = (double)uv;
-    json["lumiere"] = 0;
     json["timestamp"] = getISO8601Time();
     json["mac"] = WiFi.macAddress();
 

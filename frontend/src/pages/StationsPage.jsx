@@ -218,6 +218,7 @@ function StationsPage() {
         background: "#f0fff4",
         color: "#155724",
       });
+      setRefreshID(uuidv4());
     } catch (error) {
       Swal.fire({
         title: "❌ Failed!",
