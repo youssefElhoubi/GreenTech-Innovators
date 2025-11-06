@@ -8,10 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.greentechinnovators.entity.City;
 import com.greentechinnovators.repository.CityRepository;
+import com.greentechinnovators.repository.DataRepository;
+import com.greentechinnovators.entity.Data;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
-
 
 @Service
 public class StationsService {
@@ -19,8 +23,12 @@ public class StationsService {
     private StationMapper stationMapper;
     private final CityRepository cityRepository;
     private StationRepository stationRepository;
+    @Autowired
+    private DataRepository dataRepository;
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
-    public StationsService(StationRepository stationRepository , CityRepository cityRepository) {
+    public StationsService(StationRepository stationRepository, CityRepository cityRepository) {
         this.stationRepository = stationRepository;
         this.cityRepository = cityRepository;
 
@@ -41,13 +49,47 @@ public class StationsService {
         return stationRepository.save(station);
     }
 
-
     public List<Station> all() {
-        return stationRepository.findAll();
+        List<Station> stations = stationRepository.findAll();
+
+        // Peupler les données pour chaque station
+        for (Station station : stations) {
+            // Peupler la ville si elle est null (lazy loading)
+            if (station.getCity() != null && station.getCity().getName() == null) {
+                Optional<City> cityOpt = cityRepository.findById(station.getCity().getId());
+                if (cityOpt.isPresent()) {
+                    station.setCity(cityOpt.get());
+                }
+            }
+
+            // Peupler les données de la station en cherchant par MAC address
+            // Les données sont stockées avec un champ "mac" qui correspond à l'adresseMAC
+            // de la station
+            if (station.getAdresseMAC() != null && !station.getAdresseMAC().isEmpty()) {
+                Query query = new Query(Criteria.where("mac").is(station.getAdresseMAC()));
+                List<Data> stationData = mongoTemplate.find(query, Data.class);
+
+                if (stationData != null && !stationData.isEmpty()) {
+                    station.setData(stationData);
+                    System.out.println("Loaded " + stationData.size() + " data points for station " + station.getName()
+                            + " (MAC: " + station.getAdresseMAC() + ")");
+                } else {
+                    // Si pas de données trouvées par MAC, initialiser avec une liste vide
+                    station.setData(new ArrayList<>());
+                }
+            } else {
+                // Si pas de MAC, initialiser avec une liste vide
+                station.setData(new ArrayList<>());
+            }
+        }
+
+        return stations;
     }
+
     public Station findByAddressMAC(String addressMAC) {
         return stationRepository.findByAdresseMAC(addressMAC);
     }
+
     public Station updateStation(Station station) {
         return stationRepository.save(station);
     }
@@ -70,12 +112,12 @@ public class StationsService {
         Station updated = stationRepository.save(existing);
         return stationMapper.toDto(updated);
     }
+
     public void delete(String id) {
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Station not found with id: " + id));
         stationRepository.delete(station);
     }
-    
 
     public Station saveMacAddress(String mac) {
         Optional<Station> existingStation = Optional.ofNullable(stationRepository.findByAdresseMAC(mac));
@@ -97,6 +139,5 @@ public class StationsService {
         System.out.println(" Saved new station with MAC: " + mac);
         return saved;
     }
-
 
 }
