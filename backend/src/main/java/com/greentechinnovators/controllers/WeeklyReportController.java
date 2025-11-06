@@ -1,12 +1,18 @@
 package com.greentechinnovators.controllers;
 
 import com.greentechinnovators.service.WeeklyReportService;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -141,4 +147,33 @@ public class WeeklyReportController {
                     .body(null);
         }
     }
+
+    @GetMapping("/pdf-ai-latest")
+    public ResponseEntity<InputStreamResource> downloadLatestPdf() {
+        try {
+            Path reportsDir = Path.of("reports");
+            Optional<Path> latestFile = Files.list(reportsDir)
+                    .filter(p -> p.getFileName().toString().startsWith("weekly-report-ai-") && p.toString().endsWith(".pdf"))
+                    .max(Comparator.comparingLong(p -> p.toFile().lastModified()));
+
+            if (latestFile.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            File file = latestFile.get().toFile();
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName())
+                    .contentLength(file.length())
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(resource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
 }

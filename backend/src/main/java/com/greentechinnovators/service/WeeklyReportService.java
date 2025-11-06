@@ -8,6 +8,7 @@ import com.greentechinnovators.entity.Station;
 import com.greentechinnovators.repository.DataRepository;
 import com.greentechinnovators.repository.PredictionRepository;
 import com.greentechinnovators.repository.StationRepository;
+import com.itextpdf.layout.element.Text;
 import org.springframework.stereotype.Service;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -355,6 +356,42 @@ public class WeeklyReportService {
             mapper.enable(SerializationFeature.INDENT_OUTPUT);
             String jsonReport = mapper.writeValueAsString(reportData);
 
+            document.add(new Paragraph("\n").setFontSize(4)); // small space
+            document.add(new Paragraph("────────────────────────────────────────────────────────────")
+                    .setBold()
+                    .setFontSize(12));
+            document.add(new Paragraph("\n").setFontSize(4)); // small space
+
+
+            Paragraph p1 = new Paragraph();
+            p1.add(new Text("AQI : ").setBold());
+            p1.add(new Text("Air Quality Index"));
+            document.add(p1);
+
+            Paragraph p2 = new Paragraph();
+            p2.add(new Text("Evolution : ").setBold());
+            p2.add(new Text("Change or variation of the AQI compared to the previous week"));
+            document.add(p2);
+
+            Paragraph p3 = new Paragraph();
+            p3.add(new Text("Temp : ").setBold());
+            p3.add(new Text("Air temperature in degrees Celsius (°C)"));
+            document.add(p3);
+
+            Paragraph p4 = new Paragraph();
+            p4.add(new Text("Humidity : ").setBold());
+            p4.add(new Text("Air humidity percentage (%)"));
+            document.add(p4);
+
+            Paragraph p5 = new Paragraph();
+            p5.add(new Text("Active Stations : ").setBold());
+            p5.add(new Text("Number of stations actively collecting data this week"));
+            document.add(p5);
+
+            Paragraph p6 = new Paragraph();
+            p6.add(new Text("Alert Level : ").setBold());
+            p6.add(new Text("Alert level based on AQI (GREEN, YELLOW, RED)"));
+            document.add(p6);
 
 
             document.close();
@@ -375,8 +412,8 @@ public class WeeklyReportService {
         You are an environmental AI analyst.
         Analyze weekly pollution, temperature, and humidity data from various cities.
         Provide your answer in this format:
-        problem: { summarize key environmental issues found }
-        solution: { suggest realistic actions to improve the situation }
+        problem:  summarize key environmental issues found 
+        solution:  suggest realistic actions to improve the situation 
         """;
 
             String userMessage = "Here is this week's report data:\n" + jsonReport;
