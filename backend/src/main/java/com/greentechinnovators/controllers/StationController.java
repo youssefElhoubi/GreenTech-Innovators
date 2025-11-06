@@ -55,7 +55,7 @@ public class StationController {
     public ResponseEntity<String> saveMac(@RequestBody StationDto data) {
         String mac = data.getAdresseMAC();
         if (stationsService.findByAddressMAC(mac) != null) {
-            return ResponseEntity.ok("MAC already exists: " + mac);
+            return ResponseEntity.badRequest().body("MAC already exists: " + mac);
         }
         System.out.println(" New ESP32 connecting with MAC: " + mac);
 

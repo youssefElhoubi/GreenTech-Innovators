@@ -25,6 +25,7 @@ function Navigation({ activePage, onPageChange, theme, onThemeChange }) {
                   onClick={(e) => {
                     e.preventDefault();
                     onPageChange(item.id);
+                    localStorage.setItem("page", item.id);
                   }}
                 >
                   <i className={`fas ${item.icon}`}></i>
