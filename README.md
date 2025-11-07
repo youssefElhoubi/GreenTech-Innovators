@@ -2,7 +2,7 @@
 
 ## Aperçu
 
-GreenTech Innovators est une plateforme de suivi de changement climatique  qui combine un backend Spring Boot, un tableau de bord React temps réel et un firmware IoT pour capteurs environnementaux. Le projet vise à centraliser la collecte de données issues des stations, analyser les tendances (y compris via un module d'IA) et présenter des visualisations interactives pour les décideurs ou les opérateurs de villes intelligentes.
+GreenTech Innovators est une plateforme de suivi de changement climatique qui combine un backend Spring Boot, un tableau de bord React temps réel et un firmware IoT pour capteurs environnementaux. Le projet vise à centraliser la collecte de données issues des stations, analyser les tendances (y compris via un module d'IA) et présenter des visualisations interactives pour les décideurs ou les opérateurs de villes intelligentes.
 
 ## Architecture globale
 
@@ -95,3 +95,8 @@ GreenTech-Innovators/
 - Activez un reverse proxy (Nginx) ou une plateforme cloud pour déployer les services.
 - Consultez `frontend/STRUCTURE.md` et `frontend/DEMARRAGE.md` pour des guides détaillés côté client.
 
+## UI frontend
+
+![Aperçu du dashboard](ui/screencapture-localhost-4173-2025-11-07-10_06_14.png)
+
+> Capture de l'écran d'accueil du dashboard en mode sombre, montrant les KPI temps réel, la carte interactive et les graphiques détaillés.
