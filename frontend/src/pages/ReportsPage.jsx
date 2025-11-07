@@ -6,65 +6,89 @@ function ReportsPage() {
   const [error, setError] = useState(null)
   const [stats, setStats] = useState(null)
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-     
+ useEffect(() => {
+  const fetchReports = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/reports/data");
+      if (!response.ok) throw new Error("Erreur lors du chargement des rapports");
+      const data = await response.json();
 
-        const response = await fetch("http://localhost:8080/api/reports/data")
-        if (!response.ok) throw new Error("Erreur lors du chargement des rapports")
-        const data = await response.json()
+      const fakeData = [
+        {
+          name: "Meknès",
+          aqiMoyen: 90,
+          evolution: "+3%",
+          alertesRouges: 1,
+          avertissementsJaunes: 2,
+          tempMoyen: 21,
+          humidityMoyen: 58,
+          stationsActives: 5,
+          alertColor: "#f59e0b",
+        },
+        {
+          name: "Fès",
+          aqiMoyen: 120,
+          evolution: "+8%",
+          alertesRouges: 3,
+          avertissementsJaunes: 4,
+          tempMoyen: 19,
+          humidityMoyen: 60,
+          stationsActives: 7,
+          alertColor: "#ef4444",
+        },
+      ];
 
-        // Map cities to reports
-        const formatted = data.cities.map((city, index) => ({
-          id: index + 1,
-          date: data.date,
-          city: city.name,
-          title: `Rapport ${data.date}`,
-          aqiMoyen: city.aqiMoyen,
-          evolution: city.evolution,
-          alertesRouges: city.alertesRouges,
-          avertissementsJaunes: city.avertissementsJaunes,
-          tempMoyen: city.tempMoyen,
-          humidityMoyen: city.humidityMoyen,
-          stationsActives: city.stationsActives,
-          alertColor: city.alertColor,
-        }))
-        setReports(formatted)
-        setLoading(false)
+      const allCities = [...data.cities, ...fakeData];
 
-        // Global statistics
-        const totalReports = formatted.length
-        const totalDownloads = formatted.reduce((sum, r) => sum + r.stationsActives, 0)
+      const formatted = allCities.map((city, index) => ({
+        id: index + 1,
+        date: data.date, // tu peux générer des dates différentes pour les fake data si tu veux
+        city: city.name,
+        title: `Rapport ${data.date}`,
+        aqiMoyen: city.aqiMoyen,
+        evolution: city.evolution,
+        alertesRouges: city.alertesRouges,
+        avertissementsJaunes: city.avertissementsJaunes,
+        tempMoyen: city.tempMoyen,
+        humidityMoyen: city.humidityMoyen,
+        stationsActives: city.stationsActives,
+        alertColor: city.alertColor,
+      }));
 
-        const reportDates = formatted.map((r) => new Date(r.date))
-        const latestDate = new Date(Math.max(...reportDates))
-        const today = new Date()
-        const diffTime = Math.abs(today - latestDate)
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-        const lastReportTime = `${diffDays}j`
+      setReports(formatted);
+      setLoading(false);
 
-        const avgAqi = formatted.reduce((sum, r) => sum + r.aqiMoyen, 0) / totalReports
-        const aqiTrend = (avgAqi - 100).toFixed(1) + "%"
+      // 5️⃣ Statistiques globales
+      const totalReports = formatted.length;
+      const totalDownloads = formatted.reduce((sum, r) => sum + r.stationsActives, 0);
+      const reportDates = formatted.map((r) => new Date(r.date));
+      const latestDate = new Date(Math.max(...reportDates));
+      const today = new Date();
+      const diffTime = Math.abs(today - latestDate);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const lastReportTime = `${diffDays}j`;
+      const avgAqi = formatted.reduce((sum, r) => sum + r.aqiMoyen, 0) / totalReports;
+      const aqiTrend = (avgAqi - 100).toFixed(1) + "%";
 
-        setStats({
-          generatedReports: totalReports,
-          downloads: totalDownloads,
-          downloadsTrend: "+12% ce mois",
-          lastReportTime,
-          lastReportDate: latestDate.toLocaleDateString("fr-FR"),
-          aqiTrend,
-          aqiTrendLabel: aqiTrend.startsWith("-") ? "Amélioration" : "En hausse",
-        })
-      } catch (err) {
-        console.error(err)
-        setError("❌ Impossible de charger les rapports.")
-        setLoading(false)
-      }
+      setStats({
+        generatedReports: totalReports,
+        downloads: totalDownloads,
+        downloadsTrend: "+12% ce mois",
+        lastReportTime,
+        lastReportDate: latestDate.toLocaleDateString("fr-FR"),
+        aqiTrend,
+        aqiTrendLabel: aqiTrend.startsWith("-") ? "Amélioration" : "En hausse",
+      });
+    } catch (err) {
+      console.error(err);
+      setError("❌ Impossible de charger les rapports.");
+      setLoading(false);
     }
+  };
 
-    fetchReports()
-  }, [])
+  fetchReports();
+}, []);
+
 
   const downloadReport = async (reportId, format) => {
   try {
@@ -151,118 +175,6 @@ function ReportsPage() {
   }
 };
 
-
-//   const downloadReport = async (reportId, format) => {
-//     try {
-//       const report = reports.find((r) => r.id === reportId)
-//       if (!report) {
-//         alert("⚠️ Rapport non trouvé.")
-//         return
-//       }
-
-//       if (format === "csv") {
-//         const response = await fetch("http://localhost:8080/api/reports/download")
-        
-//         if (!response.ok) {
-//           throw new Error("Erreur lors du téléchargement CSV")
-//         }
-
-//         const blob = await response.blob()
-//         const url = window.URL.createObjectURL(blob)
-//         const link = document.createElement("a")
-//         link.href = url
-//         link.download = `weekly-report-${report.date}.csv`
-//         link.style.display = "none"
-        
-//         document.body.appendChild(link)
-//         link.click()
-        
-//         setTimeout(() => {
-//           document.body.removeChild(link)
-//           window.URL.revokeObjectURL(url)
-//         }, 100)
-//       }else if (format === "pdf") {
-//   const response = await fetch(`http://localhost:8080/api/reports/pdf-ai`);
-  
-//   if (!response.ok) {
-//     throw new Error("Erreur lors du téléchargement PDF");
-//   }
-
-//   const blob = await response.blob();
-//   const url = window.URL.createObjectURL(blob);
-//   const link = document.createElement("a");
-//   link.href = url;
-//   link.download = `weekly-report-ai-${report.date}.pdf`;
-//   link.style.display = "none";
-
-//   document.body.appendChild(link);
-//   link.click();
-
-//   setTimeout(() => {
-//     document.body.removeChild(link);
-//     window.URL.revokeObjectURL(url);
-//   }, 100);
-//    Swal.fire({
-//           title: "🎉 Success!",
-//           text: " Rapport téléchargé avec succès!",
-//           icon: "success",
-//           timer: 5000,
-//           timerProgressBar: true,
-//           background: "#f0fff4",
-//           color: "#155724",
-//           iconColor: "#28a745",
-//           showConfirmButton: false,
-//           didOpen: () => {
-//             Swal.showLoading();
-//             const b = Swal.getPopup().querySelector("b");
-//             let timerInterval = setInterval(() => {
-//               if (Swal.getTimerLeft()) {
-//                 b.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}s`;
-//               }
-//             }, 1000);
-//           },
-//           html: `
-//     <div style="font-size:16px; font-weight:500;">
-//       Operation successful! Closing in <b>5s</b>...
-//     </div>
-//   `,
-//           customClass: {
-//             popup: "animate__animated animate__fadeInDown",
-//           },
-//         });
-// }
-//     } catch (err) {
-//       console.error("Download error:", err)
-//        Swal.fire({
-//                 title: "❌ Failed!",
-//                 text: `Something went wrong. Please try again.`,
-//                 icon: "error",
-//                 timer: 5000,
-//                 timerProgressBar: true,
-//                 background: "#fff5f5",
-//                 color: "#721c24",
-//                 iconColor: "#dc3545",
-//                 showConfirmButton: false,
-//                 didOpen: () => {
-//                   Swal.showLoading();
-//                   const b = Swal.getPopup().querySelector("b");
-//                   let timerInterval = setInterval(() => {
-//                     if (Swal.getTimerLeft()) {
-//                       b.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}s`;
-//                     }
-//                   }, 1000);
-//                 },
-//                 html: `
-//           <div style="font-size:16px; font-weight:500;">
-//             Impossible de télécharger le rapport. <b>5s</b>...
-//           </div>
-//         `,
-//                 customClass: {
-//                   popup: "animate__animated animate__shakeX",
-//                 },
-//               });
-//     }
-//   }
 
   if (error) {
     return (
