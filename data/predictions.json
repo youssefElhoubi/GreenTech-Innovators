@@ -1,0 +1,123 @@
+[
+  {
+    "_id": "pred-001",
+    "date": "2024-11-07",
+    "day": "Jeudi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-001"
+    },
+    "predictionTitle": "Qualité de l'air modérée - Vent modéré attendu",
+    "confidence": 85,
+    "predictionStatus": "NORMAL"
+  },
+  {
+    "_id": "pred-002",
+    "date": "2024-11-08",
+    "day": "Vendredi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-001"
+    },
+    "predictionTitle": "Augmentation prévue du CO2 - Activité industrielle élevée",
+    "confidence": 72,
+    "predictionStatus": "WARNING"
+  },
+  {
+    "_id": "pred-003",
+    "date": "2024-11-07",
+    "day": "Jeudi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-002"
+    },
+    "predictionTitle": "Qualité de l'air acceptable - Conditions stables",
+    "confidence": 90,
+    "predictionStatus": "NORMAL"
+  },
+  {
+    "_id": "pred-004",
+    "date": "2024-11-08",
+    "day": "Vendredi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-002"
+    },
+    "predictionTitle": "Pic de pollution attendu - Trafic dense prévu",
+    "confidence": 78,
+    "predictionStatus": "WARNING"
+  },
+  {
+    "_id": "pred-005",
+    "date": "2024-11-07",
+    "day": "Jeudi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-003"
+    },
+    "predictionTitle": "Excellente qualité de l'air - Conditions optimales",
+    "confidence": 95,
+    "predictionStatus": "NORMAL"
+  },
+  {
+    "_id": "pred-006",
+    "date": "2024-11-07",
+    "day": "Jeudi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-004"
+    },
+    "predictionTitle": "Indice UV élevé - Protection solaire recommandée",
+    "confidence": 88,
+    "predictionStatus": "WARNING"
+  },
+  {
+    "_id": "pred-007",
+    "date": "2024-11-08",
+    "day": "Vendredi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-004"
+    },
+    "predictionTitle": "Températures élevées et faible humidité - Risque de sécheresse",
+    "confidence": 82,
+    "predictionStatus": "WARNING"
+  },
+  {
+    "_id": "pred-008",
+    "date": "2024-11-07",
+    "day": "Jeudi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-005"
+    },
+    "predictionTitle": "Qualité de l'air stable - Pas d'alerte",
+    "confidence": 80,
+    "predictionStatus": "NORMAL"
+  },
+  {
+    "_id": "pred-009",
+    "date": "2024-11-07",
+    "day": "Jeudi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-006"
+    },
+    "predictionTitle": "Conditions côtières favorables - Air frais",
+    "confidence": 92,
+    "predictionStatus": "NORMAL"
+  },
+  {
+    "_id": "pred-010",
+    "date": "2024-11-08",
+    "day": "Vendredi",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-007"
+    },
+    "predictionTitle": "Indice UV très élevé - Exposition limitée recommandée",
+    "confidence": 85,
+    "predictionStatus": "DANGER"
+  }
+]
+

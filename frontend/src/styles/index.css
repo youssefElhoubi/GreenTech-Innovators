@@ -92,6 +92,20 @@
             gap: 10px;
         }
 
+        .nav-brand .nav-logo {
+            animation: navLogoSpin 8s linear infinite;
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes navLogoSpin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .nav-center {
             display: flex;
             align-items: center;

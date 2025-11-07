@@ -1,0 +1,91 @@
+[
+  {
+    "_id": "station-001",
+    "name": "Station Centre-Ville Safi",
+    "latitude": 32.2994,
+    "longitude": -9.2372,
+    "adresseMAC": "AA:BB:CC:DD:EE:01",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-001"
+    }
+  },
+  {
+    "_id": "station-002",
+    "name": "Station Port Safi",
+    "latitude": 32.3100,
+    "longitude": -9.2400,
+    "adresseMAC": "AA:BB:CC:DD:EE:02",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-001"
+    }
+  },
+  {
+    "_id": "station-003",
+    "name": "Station Ain Diab Casablanca",
+    "latitude": 33.5731,
+    "longitude": -7.6571,
+    "adresseMAC": "AA:BB:CC:DD:EE:03",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-002"
+    }
+  },
+  {
+    "_id": "station-004",
+    "name": "Station Hay Riad Rabat",
+    "latitude": 34.0209,
+    "longitude": -6.8416,
+    "adresseMAC": "AA:BB:CC:DD:EE:04",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-003"
+    }
+  },
+  {
+    "_id": "station-005",
+    "name": "Station Guéliz Marrakech",
+    "latitude": 31.6295,
+    "longitude": -7.9811,
+    "adresseMAC": "AA:BB:CC:DD:EE:05",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-004"
+    }
+  },
+  {
+    "_id": "station-006",
+    "name": "Station Médina Fès",
+    "latitude": 34.0331,
+    "longitude": -5.0000,
+    "adresseMAC": "AA:BB:CC:DD:EE:06",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-005"
+    }
+  },
+  {
+    "_id": "station-007",
+    "name": "Station Malabata Tanger",
+    "latitude": 35.7595,
+    "longitude": -5.8339,
+    "adresseMAC": "AA:BB:CC:DD:EE:07",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-006"
+    }
+  },
+  {
+    "_id": "station-008",
+    "name": "Station Agadir Centre",
+    "latitude": 30.4278,
+    "longitude": -9.5981,
+    "adresseMAC": "AA:BB:CC:DD:EE:08",
+    "city": {
+      "$ref": "cities",
+      "$id": "city-007"
+    }
+  }
+]
+

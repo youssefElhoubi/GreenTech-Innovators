@@ -1,0 +1,168 @@
+[
+  {
+    "_id": "data-001",
+    "temp": 25.3,
+    "humidity": 66.5,
+    "pression": 1011,
+    "co2": 430,
+    "gas": 37,
+    "uv": 6.8,
+    "timestamp": "2024-11-06T10:00:00",
+    "mac": "AA:BB:CC:DD:EE:01"
+  },
+  {
+    "_id": "data-002",
+    "temp": 24.8,
+    "humidity": 68.2,
+    "pression": 1012,
+    "co2": 425,
+    "gas": 35,
+    "uv": 6.5,
+    "timestamp": "2024-11-06T10:15:00",
+    "mac": "AA:BB:CC:DD:EE:01"
+  },
+  {
+    "_id": "data-003",
+    "temp": 25.1,
+    "humidity": 65.8,
+    "pression": 1011,
+    "co2": 435,
+    "gas": 38,
+    "uv": 7.0,
+    "timestamp": "2024-11-06T10:30:00",
+    "mac": "AA:BB:CC:DD:EE:01"
+  },
+  {
+    "_id": "data-004",
+    "temp": 26.0,
+    "humidity": 72.0,
+    "pression": 1012,
+    "co2": 480,
+    "gas": 42,
+    "uv": 7.2,
+    "timestamp": "2024-11-06T10:00:00",
+    "mac": "AA:BB:CC:DD:EE:03"
+  },
+  {
+    "_id": "data-005",
+    "temp": 25.7,
+    "humidity": 71.5,
+    "pression": 1012,
+    "co2": 475,
+    "gas": 41,
+    "uv": 7.1,
+    "timestamp": "2024-11-06T10:15:00",
+    "mac": "AA:BB:CC:DD:EE:03"
+  },
+  {
+    "_id": "data-006",
+    "temp": 25.0,
+    "humidity": 65.0,
+    "pression": 1013,
+    "co2": 425,
+    "gas": 38,
+    "uv": 6.5,
+    "timestamp": "2024-11-06T10:00:00",
+    "mac": "AA:BB:CC:DD:EE:04"
+  },
+  {
+    "_id": "data-007",
+    "temp": 32.5,
+    "humidity": 45.0,
+    "pression": 1015,
+    "co2": 510,
+    "gas": 45,
+    "uv": 9.1,
+    "timestamp": "2024-11-06T10:00:00",
+    "mac": "AA:BB:CC:DD:EE:05"
+  },
+  {
+    "_id": "data-008",
+    "temp": 28.2,
+    "humidity": 58.0,
+    "pression": 1014,
+    "co2": 445,
+    "gas": 40,
+    "uv": 7.8,
+    "timestamp": "2024-11-06T10:00:00",
+    "mac": "AA:BB:CC:DD:EE:06"
+  },
+  {
+    "_id": "data-009",
+    "temp": 23.5,
+    "humidity": 70.0,
+    "pression": 1011,
+    "co2": 410,
+    "gas": 35,
+    "uv": 5.5,
+    "timestamp": "2024-11-06T10:00:00",
+    "mac": "AA:BB:CC:DD:EE:07"
+  },
+  {
+    "_id": "data-010",
+    "temp": 24.3,
+    "humidity": 68.0,
+    "pression": 1010,
+    "co2": 395,
+    "gas": 33,
+    "uv": 8.2,
+    "timestamp": "2024-11-06T10:00:00",
+    "mac": "AA:BB:CC:DD:EE:08"
+  },
+  {
+    "_id": "data-011",
+    "temp": 24.5,
+    "humidity": 67.0,
+    "pression": 1010,
+    "co2": 432,
+    "gas": 36,
+    "uv": 6.9,
+    "timestamp": "2024-11-06T11:00:00",
+    "mac": "AA:BB:CC:DD:EE:01"
+  },
+  {
+    "_id": "data-012",
+    "temp": 24.2,
+    "humidity": 69.0,
+    "pression": 1011,
+    "co2": 428,
+    "gas": 36,
+    "uv": 6.7,
+    "timestamp": "2024-11-06T11:15:00",
+    "mac": "AA:BB:CC:DD:EE:01"
+  },
+  {
+    "_id": "data-013",
+    "temp": 24.9,
+    "humidity": 66.0,
+    "pression": 1011,
+    "co2": 440,
+    "gas": 38,
+    "uv": 7.1,
+    "timestamp": "2024-11-06T11:30:00",
+    "mac": "AA:BB:CC:DD:EE:01"
+  },
+  {
+    "_id": "data-014",
+    "temp": 25.5,
+    "humidity": 71.0,
+    "pression": 1012,
+    "co2": 485,
+    "gas": 43,
+    "uv": 7.3,
+    "timestamp": "2024-11-06T11:00:00",
+    "mac": "AA:BB:CC:DD:EE:03"
+  },
+  {
+    "_id": "data-015",
+    "temp": 25.2,
+    "humidity": 70.5,
+    "pression": 1012,
+    "co2": 478,
+    "gas": 42,
+    "uv": 7.2,
+    "timestamp": "2024-11-06T11:15:00",
+    "mac": "AA:BB:CC:DD:EE:03"
+  }
+]
+
