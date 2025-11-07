@@ -99,4 +99,4 @@ GreenTech-Innovators/
 
 ![Aperçu du dashboard](ui/screencapture-localhost-4173-2025-11-07-10_06_14.png)
 
-> Capture de l'écran d'accueil du dashboard en mode sombre, montrant les KPI temps réel, la carte interactive et les graphiques détaillés.
+
