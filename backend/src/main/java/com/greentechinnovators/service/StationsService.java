@@ -10,9 +10,6 @@ import com.greentechinnovators.entity.City;
 import com.greentechinnovators.repository.CityRepository;
 import com.greentechinnovators.repository.DataRepository;
 import com.greentechinnovators.entity.Data;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
@@ -25,8 +22,6 @@ public class StationsService {
     private StationRepository stationRepository;
     @Autowired
     private DataRepository dataRepository;
-    @Autowired
-    private MongoTemplate mongoTemplate;
 
     public StationsService(StationRepository stationRepository, CityRepository cityRepository) {
         this.stationRepository = stationRepository;
@@ -52,33 +47,25 @@ public class StationsService {
     public List<Station> all() {
         List<Station> stations = stationRepository.findAll();
 
-        // Peupler les données pour chaque station
+        List<Data> latestDataList = dataRepository.findLatestDataForEachStation();
+
+        java.util.Map<String, Data> dataMap = latestDataList.stream()
+                .filter(d -> d.getMac() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                    Data::getMac, 
+                    d -> d, 
+                    (existing, replacement) -> existing
+                ));
+
         for (Station station : stations) {
-            // Peupler la ville si elle est null (lazy loading)
             if (station.getCity() != null && station.getCity().getName() == null) {
-                Optional<City> cityOpt = cityRepository.findById(station.getCity().getId());
-                if (cityOpt.isPresent()) {
-                    station.setCity(cityOpt.get());
-                }
+                cityRepository.findById(station.getCity().getId())
+                    .ifPresent(station::setCity);
             }
 
-            // Peupler les données de la station en cherchant par MAC address
-            // Les données sont stockées avec un champ "mac" qui correspond à l'adresseMAC
-            // de la station
-            if (station.getAdresseMAC() != null && !station.getAdresseMAC().isEmpty()) {
-                Query query = new Query(Criteria.where("mac").is(station.getAdresseMAC()));
-                List<Data> stationData = mongoTemplate.find(query, Data.class);
-
-                if (stationData != null && !stationData.isEmpty()) {
-                    station.setData(stationData);
-                    System.out.println("Loaded " + stationData.size() + " data points for station " + station.getName()
-                            + " (MAC: " + station.getAdresseMAC() + ")");
-                } else {
-                    // Si pas de données trouvées par MAC, initialiser avec une liste vide
-                    station.setData(new ArrayList<>());
-                }
+            if (station.getAdresseMAC() != null && dataMap.containsKey(station.getAdresseMAC())) {
+                station.setData(List.of(dataMap.get(station.getAdresseMAC())));
             } else {
-                // Si pas de MAC, initialiser avec une liste vide
                 station.setData(new ArrayList<>());
             }
         }

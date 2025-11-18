@@ -32,14 +32,16 @@ public class DataWebSocketController {
         System.out.println("Received new data from IoT device: " + data);
         
         Data edata = dataService.add(data);
+
+
         Station station = stationRepository.findByAddressMAC(data.getMac());
         
-        if (station != null) {
-            station.getData().add(edata);
-            stationRepository.updateStation(station);
-        }else{
-            return null;
-        }
+        // if (station != null) {
+        //     station.getData().add(edata);
+        //     stationRepository.updateStation(station);
+        // }else{
+        //     return null;
+        // }
         
         // Broadcast the new data to all subscribers in real-time
         messagingTemplate.convertAndSend("/topic/data", edata);

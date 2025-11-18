@@ -483,14 +483,23 @@ function Dashboard() {
         </div>
 
         {/* Tab Content */}
-        {Object.keys(sensorConfigs).map((key) => (
-          <div
-            key={key}
-            className={`tab-content ${activeTab === key ? 'active' : ''}`}
-          >
-            <SensorChart sensorType={key} cityName={selectedCity} />
-          </div>
-        ))}
+        {Object.keys(sensorConfigs).map((key) => {
+          // Find selected city data including its stations
+          const selectedCityData = sortedCities.find(c => c.name === selectedCity);
+          
+          return (
+            <div
+              key={key}
+              className={`tab-content ${activeTab === key ? 'active' : ''}`}
+            >
+              <SensorChart 
+                sensorType={key} 
+                cityName={selectedCity} 
+                cityStations={selectedCity === 'moyenne' ? [] : selectedCityData?.stations || []}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
